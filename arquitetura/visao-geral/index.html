@@ -802,25 +802,25 @@ no <strong>Databricks Free Edition</strong> e encadeadas por um <strong>Job (Job
 <td><strong>Landing</strong></td>
 <td>CSV</td>
 <td>Cópia bruta da origem, camada provisória de ingestão</td>
-<td><code>002_Landing_Extracao.py</code></td>
+<td><code>002_Landing_Extracao.ipynb</code></td>
 </tr>
 <tr>
 <td><strong>Bronze</strong></td>
 <td>Delta Lake</td>
 <td>Histórico completo dos dados brutos + metadados</td>
-<td><code>003_Bronze_Ingestao.py</code></td>
+<td><code>003_Bronze_Ingestao.ipynb</code></td>
 </tr>
 <tr>
 <td><strong>Silver</strong></td>
 <td>Delta Lake</td>
 <td>Dados limpos, padronizados e validados (Data Quality)</td>
-<td><code>004_Silver_Data_Quality.py</code></td>
+<td><code>004_Silver_Data_Quality.ipynb</code></td>
 </tr>
 <tr>
 <td><strong>Gold</strong></td>
 <td>Delta Lake</td>
 <td>Modelo dimensional (Kimball) otimizado para consumo/BI</td>
-<td><code>005_Gold_Modelagem_Dimensional.py</code></td>
+<td><code>005_Gold_Modelagem_Dimensional.ipynb</code></td>
 </tr>
 </tbody>
 </table>
@@ -836,7 +836,7 @@ no <strong>Databricks Free Edition</strong> e encadeadas por um <strong>Job (Job
   para leitura (dimensional / star schema). Altamente governado e documentado.</li>
 </ul>
 <h2 id="setup-do-ambiente-notebook-001">Setup do ambiente (notebook 001)</h2>
-<p>O notebook <code>001_Preparando_Ambiente.py</code> prepara todo o ambiente antes da execução:</p>
+<p>O notebook <code>001_Preparando_Ambiente.ipynb</code> prepara todo o ambiente antes da execução:</p>
 <ul>
 <li>Remove o ambiente anterior (execução limpa)</li>
 <li>Cria os schemas <code>landing</code>, <code>bronze</code>, <code>silver</code> e <code>gold</code></li>

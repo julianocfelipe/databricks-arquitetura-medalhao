@@ -59,9 +59,10 @@ for tabela in tabelas:
     df_landing.printSchema()
 
     # Adiciona colunas de metadados (auditoria)
+    # Obs.: input_file_name() não é suportado no Unity Catalog → usa a coluna _metadata.file_path
     df_bronze = (
         df_landing
-        .withColumn("nome_arquivo",       F.input_file_name())
+        .withColumn("nome_arquivo",       F.col("_metadata.file_path"))
         .withColumn("data_processamento", F.current_timestamp())
     )
 

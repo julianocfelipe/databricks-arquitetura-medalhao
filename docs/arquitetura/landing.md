@@ -1,29 +1,16 @@
-# Camada Landing
+# Landing
 
 > Notebook: `01_extract_supabase_to_landing.ipynb`
 
-A **Landing** é a camada provisória responsável pela **primeira ingestão** dos dados no Data Lake.
-Os dados são gravados no **formato original da origem** — neste trabalho, **CSV** (origem relacional).
+Primeira ingestão dos dados, no formato original da origem (CSV). O notebook também cria os schemas e
+o Volume da Landing Zone.
 
-Este notebook também **prepara o ambiente**: cria os schemas (`landing`, `bronze`, `silver`, `gold`)
-e o **Volume** da Landing Zone.
+## Etapas
 
-```sql
-CREATE SCHEMA IF NOT EXISTS landing;
-CREATE SCHEMA IF NOT EXISTS bronze;
-CREATE SCHEMA IF NOT EXISTS silver;
-CREATE SCHEMA IF NOT EXISTS gold;
-
-CREATE VOLUME IF NOT EXISTS workspace.landing.dados;
-```
-
-## O que a camada faz
-
-- Conecta no banco de origem (**Supabase / PostgreSQL**) via **JDBC**
-- Extrai **todas as tabelas** (`clientes`, `produtos`, `pedidos`)
-- Adiciona metadados de auditoria (`_source_table`, `_extracted_at`)
-- Grava cada tabela como **CSV** no Volume `/Volumes/workspace/landing/dados/{tabela}/`
-- Registra as tabelas no schema `landing`
+1. Cria os schemas (`landing`, `bronze`, `silver`, `gold`) e o Volume `workspace.landing.dados`.
+2. Lê as tabelas do Supabase via **JDBC**.
+3. Grava cada tabela como CSV no Volume `/Volumes/workspace/landing/dados/{tabela}/`.
+4. Registra as tabelas no schema `landing`.
 
 ```python
 def read_supabase_table(table_name):
@@ -39,47 +26,25 @@ def read_supabase_table(table_name):
     )
 ```
 
-!!! info "Databricks Free Edition é serverless"
-    O driver JDBC do PostgreSQL (`org.postgresql.Driver`) **já vem incluído no Databricks Runtime**,
-    então **não é preciso instalar nada** (nem biblioteca Maven nem `pip`). A Landing Zone usa um
-    **Volume** do Unity Catalog (`/Volumes/workspace/landing/dados`), e não o DBFS `/FileStore`
-    (restrito no serverless).
-
-!!! warning "Conexão: use o Session Pooler (IPv4)"
-    A conexão **direta** (`db.xxxx.supabase.co`) costuma ser apenas IPv6 e não é alcançável pelo
-    Databricks serverless. Use os dados do **Session Pooler** (IPv4, porta `5432`):
-    host `aws-1-<regiao>.pooler.supabase.com` e usuário `postgres.<project-ref>`.
-
-## Configuração da conexão
-
-No início do notebook, preencha as credenciais do **Session Pooler** do seu projeto Supabase
-(em **Connect → Session pooler**):
+## Conexão (Session Pooler — IPv4)
 
 ```python
 SUPABASE_HOST     = "aws-1-<regiao>.pooler.supabase.com"
 SUPABASE_PORT     = "5432"
 SUPABASE_DATABASE = "postgres"
 SUPABASE_USER     = "postgres.<project-ref>"
-SUPABASE_PASSWORD = "SUA_SENHA_AQUI"
+SUPABASE_PASSWORD = "<senha>"
 ```
 
-## Banco de origem (setup do Supabase)
+## Banco de origem (Supabase)
 
-Antes de extrair, o banco de origem precisa existir. Execute o script abaixo no
-**Supabase → SQL Editor → New Query**. Ele cria as tabelas e popula o dataset da Loja Virtual
-(o mesmo dos trabalhos 1 e 2).
+Execute o script abaixo no **SQL Editor** do Supabase para criar e popular as tabelas de origem.
 
 ```sql
--- ============================================================
--- Setup Supabase — LojaVirtualDB
--- ============================================================
-
--- 1. Remove tabelas se já existirem (ordem respeitando FKs)
 DROP TABLE IF EXISTS pedidos  CASCADE;
 DROP TABLE IF EXISTS produtos CASCADE;
 DROP TABLE IF EXISTS clientes CASCADE;
 
--- 2. Cria tabelas
 CREATE TABLE clientes (
     id      INTEGER PRIMARY KEY,
     nome    VARCHAR(100) NOT NULL,
@@ -105,7 +70,6 @@ CREATE TABLE pedidos (
     status      VARCHAR(50) NOT NULL
 );
 
--- 3. Insere dados (mesmo dataset dos trabalhos 1 e 2)
 INSERT INTO clientes (id, nome, email, cidade) VALUES
     (1, 'Ana Souza',    'ana@email.com',    'Florianopolis'),
     (2, 'Bruno Lima',   'bruno@email.com',  'Criciuma'),
@@ -126,14 +90,4 @@ INSERT INTO pedidos (id, cliente_id, produto_id, quantidade, valor_total, data_p
     (3, 3, 3, 1,  150.00, '2024-01-15', 'em_transito'),
     (4, 4, 4, 1, 1200.00, '2024-01-18', 'processando'),
     (5, 5, 5, 2,  500.00, '2024-01-20', 'processando');
-
--- 4. Validação
-SELECT 'clientes' AS tabela, COUNT(*) AS total FROM clientes
-UNION ALL SELECT 'produtos', COUNT(*) FROM produtos
-UNION ALL SELECT 'pedidos',  COUNT(*) FROM pedidos;
 ```
-
-## Resultado
-
-Ao final, os dados brutos ficam disponíveis no Volume `/Volumes/workspace/landing/dados/` e como
-tabelas no schema `landing`, prontos para serem ingeridos pela camada **Bronze**.

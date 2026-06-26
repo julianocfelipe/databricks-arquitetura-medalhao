@@ -1,60 +1,46 @@
 # Modelo Dimensional
 
-A camada **Gold** organiza os dados em um **Star Schema**: uma tabela **fato** central cercada por
-**dimensões**.
+Star Schema da camada Gold: uma fato central cercada por dimensões.
 
 ```
-        dim_cliente
-             │
-        fato_pedido ─── dim_produto
+    dim_cliente
+         │
+    fato_pedido ─── dim_produto
 ```
 
-## Tabela fato
-
-### `fato_pedido`
-
-Registra cada pedido (transação de venda). Contém as **chaves de negócio** para as dimensões, as
-**métricas** numéricas e os atributos de tempo derivados da data do pedido.
+## `fato_pedido`
 
 | Coluna | Tipo | Descrição |
 |--------|------|-----------|
-| `pedido_id` | string | Chave de negócio do pedido |
+| `pedido_id` | string | Chave do pedido |
 | `cliente_id` | string | FK → `dim_cliente` |
 | `produto_id` | string | FK → `dim_produto` |
 | `data_pedido` | date | Data do pedido |
-| `ano` / `mes` / `dia` | int | Atributos de tempo derivados |
-| `quantidade` | int | Métrica — unidades |
-| `valor_total` | double | Métrica — receita |
+| `ano` / `mes` / `dia` | int | Atributos de tempo |
+| `quantidade` | int | Métrica |
+| `valor_total` | double | Métrica |
 | `status` | string | Status do pedido |
 | `gold_created_at` | timestamp | Auditoria |
 
-## Dimensões
-
-### `dim_cliente`
+## `dim_cliente`
 
 | Coluna | Descrição |
 |--------|-----------|
-| `cliente_id` | Chave de negócio |
-| `nome_cliente` | Nome do cliente |
+| `cliente_id` | Chave do cliente |
+| `nome_cliente` | Nome |
 | `email` | E-mail |
 | `cidade` | Cidade |
 
-### `dim_produto`
+## `dim_produto`
 
 | Coluna | Descrição |
 |--------|-----------|
-| `produto_id` | Chave de negócio |
-| `nome_produto` | Nome do produto |
+| `produto_id` | Chave do produto |
+| `nome_produto` | Nome |
 | `categoria` | Categoria |
 | `preco` | Preço |
 
-## Por que Star Schema?
-
-- Consultas com `JOIN` simples entre a fato e as dimensões → ótimo desempenho de leitura
-- Estrutura intuitiva para ferramentas de BI
-- Separação clara entre **métricas** (fato) e **atributos descritivos** (dimensões)
-
-## Exemplo de consulta
+## Consulta de exemplo
 
 ```sql
 SELECT

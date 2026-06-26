@@ -1,12 +1,8 @@
-# Trabalho 3 — Databricks: Arquitetura Medalhão
+# Trabalho 3 — Lakehouse com Databricks e Arquitetura Medalhão
 
-Pipeline de dados completo no **Databricks Free Edition** implementando a **Arquitetura Medalhão**,
-com orquestração via **Jobs & Pipelines**.
-
-## Objetivo
-
-Construir um pipeline de dados (**Landing → Bronze → Silver → Gold**) utilizando o mesmo dataset da
-Loja Virtual dos trabalhos anteriores, agora em uma solução **PaaS na nuvem**.
+Pipeline de dados no **Databricks Free Edition** que implementa a **Arquitetura Medalhão**
+(Landing → Bronze → Silver → Gold), extraindo um banco PostgreSQL hospedado no **Supabase** e
+orquestrando as etapas via **Jobs & Pipelines**.
 
 ## Pipeline
 
@@ -14,41 +10,39 @@ Loja Virtual dos trabalhos anteriores, agora em uma solução **PaaS na nuvem**.
 Supabase (PostgreSQL)
         │  JDBC
         ▼
-   LANDING           CSV brutos (Volume do Unity Catalog)
-        │
+   LANDING    CSV bruto em Volume do Unity Catalog
         ▼
-     BRONZE          cópia em Delta Lake
-        │
+   BRONZE     cópia em Delta Lake
         ▼
-     SILVER          Delta Lake + Data Quality
-        │
+   SILVER     Delta Lake + Data Quality
         ▼
-      GOLD           Delta Lake + Star Schema
+    GOLD      Star Schema (modelo dimensional)
 ```
 
-## Navegação
+## Conteúdo
 
-- **[Visão Geral](arquitetura/visao-geral.md)** — conceitos da arquitetura e resumo das camadas
-- **[Landing](arquitetura/landing.md)** — extração da origem (JDBC) + setup do Supabase
-- **[Bronze](arquitetura/bronze.md)** — ingestão em Delta Lake
-- **[Silver](arquitetura/silver.md)** — Data Quality e padronização
-- **[Gold](arquitetura/gold.md)** — modelagem dimensional
-- **[Modelo Dimensional](modelo-dimensional.md)** — detalhes do Star Schema
-- **[Jobs & Pipelines](jobs-pipelines.md)** — orquestração sequencial dos notebooks
+- [Visão Geral](arquitetura/visao-geral.md)
+- [Landing](arquitetura/landing.md)
+- [Bronze](arquitetura/bronze.md)
+- [Silver](arquitetura/silver.md)
+- [Gold](arquitetura/gold.md)
+- [Modelo Dimensional](modelo-dimensional.md)
+- [Jobs & Pipelines](jobs-pipelines.md)
 
 ## Tecnologias
 
-- **Databricks Free Edition** — plataforma de processamento (serverless)
-- **Supabase** — banco PostgreSQL na nuvem (origem)
-- **Delta Lake** — formato de armazenamento ACID
-- **Apache Spark (PySpark)** — processamento distribuído
-- **Jobs & Pipelines** — orquestração sequencial
+- Databricks Free Edition (serverless)
+- Apache Spark (PySpark)
+- Delta Lake
+- Unity Catalog (schemas e Volumes)
+- PostgreSQL JDBC Driver
+- Supabase (PostgreSQL gerenciado)
 
-## Screenshots
+## Referências
 
-> Adicione aqui prints do Databricks mostrando:
->
-> - Execução dos notebooks
-> - DAG do Job (Jobs & Pipelines)
-> - Tabelas criadas no Catalog Explorer
-> - Resultados das queries no Gold
+- [Databricks Documentation](https://docs.databricks.com/)
+- [Apache Spark — PySpark](https://spark.apache.org/docs/latest/api/python/index.html)
+- [Delta Lake](https://docs.delta.io/latest/index.html)
+- [Unity Catalog — Volumes](https://docs.databricks.com/aws/en/volumes/)
+- [PostgreSQL JDBC Driver](https://jdbc.postgresql.org/documentation/)
+- [Supabase — Connecting to Postgres](https://supabase.com/docs/guides/database/connecting-to-postgres)

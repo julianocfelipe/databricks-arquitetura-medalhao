@@ -1,6 +1,6 @@
 # Camada Landing
 
-> Notebook: `002_Landing_Extracao.py`
+> Notebook: `002_Landing_Extracao.ipynb`
 
 A **Landing** é a camada provisória responsável pela **primeira ingestão** dos dados no Data Lake.
 Os dados são gravados no **formato original da origem** — neste trabalho, **CSV** (origem relacional).
@@ -38,7 +38,7 @@ pdf.to_csv(f"{LANDING_PATH}/{tabela}/{tabela}.csv", index=False)
 
 ## Configuração da conexão
 
-No início do notebook `002_Landing_Extracao.py`, preencha as credenciais do **seu** projeto Supabase
+No início do notebook `002_Landing_Extracao.ipynb`, preencha as credenciais do **seu** projeto Supabase
 (`Settings → Database → Connection string`):
 
 ```python

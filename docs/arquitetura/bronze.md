@@ -1,6 +1,6 @@
 # Camada Bronze
 
-> Notebook: `003_Bronze_Ingestao.py`
+> Notebook: `003_Bronze_Ingestao.ipynb`
 
 A **Bronze** é a cópia da camada Landing, agora em **Delta Lake**. Mantém o **histórico completo dos
 dados brutos** (ainda não processados), com suporte a ACID e *time travel*.

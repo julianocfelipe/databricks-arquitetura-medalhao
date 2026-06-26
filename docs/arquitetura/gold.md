@@ -1,6 +1,6 @@
 # Camada Gold
 
-> Notebook: `005_Gold_Modelagem_Dimensional.py`
+> Notebook: `005_Gold_Modelagem_Dimensional.ipynb`
 
 A **Gold** lê os dados do Silver e constrói o **modelo dimensional (Ralph Kimball)** — um
 **Star Schema** otimizado para consumo analítico e BI. Formato **Delta Lake**, altamente governado.

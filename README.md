@@ -55,12 +55,12 @@ dim_tempo ─── fato_pedidos ─── dim_produtos
 
 | Notebook | Etapa | Descrição |
 |----------|-------|-----------|
-| `001_Preparando_Ambiente.py` | Setup | Cria schemas e o Volume da Landing Zone |
-| `002_Landing_Extracao.py` | Landing | Extrai do Supabase → CSV no Volume |
-| `003_Bronze_Ingestao.py` | Bronze | CSV → Delta Lake com metadados |
-| `004_Silver_Data_Quality.py` | Silver | Data Quality + padronização |
-| `005_Gold_Modelagem_Dimensional.py` | Gold | Star Schema (Ralph Kimball) |
-| `006_Destruindo_Ambiente.py` | Reset | Remove todos os schemas (CASCADE) |
+| `001_Preparando_Ambiente.ipynb` | Setup | Cria schemas e o Volume da Landing Zone |
+| `002_Landing_Extracao.ipynb` | Landing | Extrai do Supabase → CSV no Volume |
+| `003_Bronze_Ingestao.ipynb` | Bronze | CSV → Delta Lake com metadados |
+| `004_Silver_Data_Quality.ipynb` | Silver | Data Quality + padronização |
+| `005_Gold_Modelagem_Dimensional.ipynb` | Gold | Star Schema (Ralph Kimball) |
+| `006_Destruindo_Ambiente.ipynb` | Reset | Remove todos os schemas (CASCADE) |
 
 ## Tecnologias
 
@@ -83,7 +83,7 @@ dim_tempo ─── fato_pedidos ─── dim_produtos
 1. Crie o banco de origem no Supabase executando o script SQL disponível na
    [documentação — Landing](https://julianocfelipe.github.io/databricks-arquitetura-medalhao/arquitetura/landing/)
 2. Importe os notebooks da pasta `notebooks/` no workspace do Databricks
-3. Configure as credenciais do Supabase no notebook `002_Landing_Extracao.py`
+3. Configure as credenciais do Supabase no notebook `002_Landing_Extracao.ipynb`
 4. Execute os notebooks na ordem (001 → 002 → 003 → 004 → 005)
 5. Ou execute o **Job** (Jobs & Pipelines) com as 5 tasks encadeadas para automação completa
 
@@ -91,11 +91,12 @@ dim_tempo ─── fato_pedidos ─── dim_produtos
 
 ```
 ├── notebooks/               # Notebooks Databricks
-│   ├── 001_Preparando_Ambiente.py
-│   ├── 002_Landing_Extracao.py
-│   ├── 003_Bronze_Ingestao.py
-│   ├── 004_Silver_Data_Quality.py
-│   └── 005_Gold_Modelagem_Dimensional.py
+│   ├── 001_Preparando_Ambiente.ipynb
+│   ├── 002_Landing_Extracao.ipynb
+│   ├── 003_Bronze_Ingestao.ipynb
+│   ├── 004_Silver_Data_Quality.ipynb
+│   ├── 005_Gold_Modelagem_Dimensional.ipynb
+│   └── 006_Destruindo_Ambiente.ipynb
 ├── docs/                    # Documentação (MkDocs)
 ├── site/                    # Site gerado pelo MkDocs (gh-pages)
 ├── mkdocs.yml               # Configuração do MkDocs

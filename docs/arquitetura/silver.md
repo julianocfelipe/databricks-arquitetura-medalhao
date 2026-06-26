@@ -1,6 +1,6 @@
 # Camada Silver
 
-> Notebook: `004_Silver_Data_Quality.py`
+> Notebook: `004_Silver_Data_Quality.ipynb`
 
 A **Silver** lê os dados do Bronze, aplica **regras de Data Quality** e padronização, e grava em
 formato **Delta Lake** no schema `silver`. É a camada usada por engenheiros de dados e de ML/IA

@@ -29,10 +29,10 @@ Supabase (PostgreSQL)
 
 | Camada | Formato | Conteúdo | Notebook |
 |--------|---------|----------|----------|
-| **Landing** | CSV | Cópia bruta da origem, camada provisória de ingestão | `002_Landing_Extracao.py` |
-| **Bronze** | Delta Lake | Histórico completo dos dados brutos + metadados | `003_Bronze_Ingestao.py` |
-| **Silver** | Delta Lake | Dados limpos, padronizados e validados (Data Quality) | `004_Silver_Data_Quality.py` |
-| **Gold** | Delta Lake | Modelo dimensional (Kimball) otimizado para consumo/BI | `005_Gold_Modelagem_Dimensional.py` |
+| **Landing** | CSV | Cópia bruta da origem, camada provisória de ingestão | `002_Landing_Extracao.ipynb` |
+| **Bronze** | Delta Lake | Histórico completo dos dados brutos + metadados | `003_Bronze_Ingestao.ipynb` |
+| **Silver** | Delta Lake | Dados limpos, padronizados e validados (Data Quality) | `004_Silver_Data_Quality.ipynb` |
+| **Gold** | Delta Lake | Modelo dimensional (Kimball) otimizado para consumo/BI | `005_Gold_Modelagem_Dimensional.ipynb` |
 
 ## Característica de cada camada
 
@@ -47,7 +47,7 @@ Supabase (PostgreSQL)
 
 ## Setup do ambiente (notebook 001)
 
-O notebook `001_Preparando_Ambiente.py` prepara todo o ambiente antes da execução:
+O notebook `001_Preparando_Ambiente.ipynb` prepara todo o ambiente antes da execução:
 
 - Remove o ambiente anterior (execução limpa)
 - Cria os schemas `landing`, `bronze`, `silver` e `gold`

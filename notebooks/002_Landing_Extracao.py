@@ -41,18 +41,15 @@ dbutils.library.restartPython()
 
 # COMMAND ----------
 
-# ⚠️ Dados do SEU projeto Supabase
-# Acesse: supabase.com → seu projeto → Connect → ORMs/psql → copie host, porta, usuário e senha
+# ⚠️ Dados do SEU projeto Supabase — Session Pooler (IPv4)
+# Acesse: supabase.com → seu projeto → Connect → seção "Session pooler"
 #
-# IMPORTANTE (Free Edition serverless): a conexão DIRETA (db.xxxx.supabase.co) costuma ser
-# apenas IPv6 e pode NÃO ser alcançável pelo Databricks serverless. Se a conexão der timeout,
-# troque pelos dados do "Session Pooler" (IPv4) do Supabase, que ficam assim:
-#   SUPABASE_HOST = "aws-0-<regiao>.pooler.supabase.com"
-#   SUPABASE_USER = "postgres.cffpopikxclgtbuyyzgr"
-SUPABASE_HOST     = "db.cffpopikxclgtbuyyzgr.supabase.co"
+# Usa o Session Pooler (IPv4) em vez da conexão direta (db.xxxx.supabase.co, IPv6),
+# pois o Databricks Free Edition serverless não alcança o host direto (timeout).
+SUPABASE_HOST     = "aws-1-us-west-2.pooler.supabase.com"
 SUPABASE_PORT     = "5432"
 SUPABASE_DB       = "postgres"
-SUPABASE_USER     = "postgres"
+SUPABASE_USER     = "postgres.cffpopikxclgtbuyyzgr"
 SUPABASE_PASSWORD = "I8ntHq1cKA1mCJsF"
 
 # Landing Zone como Volume do Unity Catalog (schema landing / volume dados)

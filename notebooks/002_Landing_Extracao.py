@@ -4,7 +4,7 @@
 
 # MAGIC %md
 # MAGIC # 002 — Landing: Extração do Banco de Dados
-# MAGIC ## Fonte: Supabase (PostgreSQL) → DBFS `/FileStore/landing/dados`
+# MAGIC ## Fonte: Supabase (PostgreSQL) → Volume `/Volumes/<catalog>/landing/dados`
 # MAGIC
 # MAGIC Extrai todas as tabelas do banco **LojaVirtualDB** no Supabase
 # MAGIC e grava como arquivos **CSV** na Landing Zone.
@@ -139,6 +139,6 @@ for tabela in tabelas:
 # MAGIC %md
 # MAGIC ## ✅ Extração concluída!
 # MAGIC
-# MAGIC Dados brutos gravados em `dbfs:/FileStore/landing/dados/`
+# MAGIC Dados brutos gravados no Volume `/Volumes/<catalog>/landing/dados/`
 # MAGIC
 # MAGIC Próximo passo → **003_Bronze_Ingestao**

@@ -25,7 +25,9 @@
 
 from pyspark.sql import functions as F
 
-LANDING_PATH = "/FileStore/landing/dados"
+# Landing Zone como Volume do Unity Catalog (mesmo caminho usado no notebook 002)
+CATALOG      = spark.sql("SELECT current_catalog()").collect()[0][0]
+LANDING_PATH = f"/Volumes/{CATALOG}/landing/dados"
 BRONZE_DB    = "bronze"
 tabelas      = ["clientes", "produtos", "pedidos"]
 

@@ -9,11 +9,10 @@
 # MAGIC Extrai todas as tabelas do banco **LojaVirtualDB** no Supabase
 # MAGIC e grava como arquivos **CSV** na Landing Zone.
 # MAGIC
-# MAGIC ### Pré-requisito obrigatório
-# MAGIC Antes de rodar este notebook, instale a biblioteca Maven no cluster:
-# MAGIC - Vá em **Compute → seu cluster → Libraries → Install New**
-# MAGIC - Selecione **Maven** e cole a coordenada: `org.postgresql:postgresql:42.7.3`
-# MAGIC - Aguarde a instalação e reinicie o cluster
+# MAGIC ### Ambiente: Databricks Free Edition (Serverless)
+# MAGIC O Free Edition é **serverless** — não há cluster clássico nem aba *Libraries* para
+# MAGIC instalar driver Maven. Por isso a extração usa **psycopg2** (driver Python),
+# MAGIC instalado direto no notebook com `%pip`, em vez de Spark JDBC.
 # MAGIC
 # MAGIC ### Modelo de dados extraído
 # MAGIC ```
@@ -25,35 +24,45 @@
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC ## 1. Configuração da Conexão com Supabase
+# MAGIC ## 1. Instalar o driver PostgreSQL (psycopg2)
 
 # COMMAND ----------
 
-# ⚠️ Substitua pelos dados do SEU projeto Supabase
-# Acesse: supabase.com → seu projeto → Settings → Database → Connection string
-SUPABASE_HOST     = "db.XXXXXXXXXX.supabase.co"   # ex: db.abcdefghij.supabase.co
+# MAGIC %pip install psycopg2-binary
+
+# COMMAND ----------
+
+dbutils.library.restartPython()
+
+# COMMAND ----------
+
+# MAGIC %md
+# MAGIC ## 2. Configuração da Conexão com Supabase
+
+# COMMAND ----------
+
+# ⚠️ Dados do SEU projeto Supabase
+# Acesse: supabase.com → seu projeto → Connect → ORMs/psql → copie host, porta, usuário e senha
+#
+# IMPORTANTE (Free Edition serverless): a conexão DIRETA (db.xxxx.supabase.co) costuma ser
+# apenas IPv6 e pode NÃO ser alcançável pelo Databricks serverless. Se a conexão der timeout,
+# troque pelos dados do "Session Pooler" (IPv4) do Supabase, que ficam assim:
+#   SUPABASE_HOST = "aws-0-<regiao>.pooler.supabase.com"
+#   SUPABASE_USER = "postgres.cffpopikxclgtbuyyzgr"
+SUPABASE_HOST     = "db.cffpopikxclgtbuyyzgr.supabase.co"
 SUPABASE_PORT     = "5432"
 SUPABASE_DB       = "postgres"
 SUPABASE_USER     = "postgres"
-SUPABASE_PASSWORD = "SUA_SENHA_AQUI"               # senha definida ao criar o projeto
+SUPABASE_PASSWORD = "I8ntHq1cKA1mCJsF"
 
-JDBC_URL = (
-    f"jdbc:postgresql://{SUPABASE_HOST}:{SUPABASE_PORT}/{SUPABASE_DB}"
-    f"?sslmode=require"
-)
-
-connection_properties = {
-    "user":     SUPABASE_USER,
-    "password": SUPABASE_PASSWORD,
-    "driver":   "org.postgresql.Driver"
-}
-
-LANDING_PATH = "/FileStore/landing/dados"
+# Landing Zone como Volume do Unity Catalog (schema landing / volume dados)
+CATALOG      = spark.sql("SELECT current_catalog()").collect()[0][0]
+LANDING_PATH = f"/Volumes/{CATALOG}/landing/dados"
 tabelas      = ["clientes", "produtos", "pedidos"]
 
-print(f"Host   : {SUPABASE_HOST}")
-print(f"Banco  : {SUPABASE_DB}")
-print(f"Driver : org.postgresql.Driver")
+print(f"Host    : {SUPABASE_HOST}")
+print(f"Banco   : {SUPABASE_DB}")
+print(f"Landing : {LANDING_PATH}")
 
 # COMMAND ----------
 
@@ -62,37 +71,42 @@ print(f"Driver : org.postgresql.Driver")
 
 # COMMAND ----------
 
+import os
+import psycopg2
+import pandas as pd
 from datetime import datetime
 
 data_extracao = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 print(f"Início da extração: {data_extracao}\n")
+
+# Conecta no Supabase via psycopg2 (driver Python — funciona no serverless)
+conn = psycopg2.connect(
+    host=SUPABASE_HOST,
+    port=SUPABASE_PORT,
+    dbname=SUPABASE_DB,
+    user=SUPABASE_USER,
+    password=SUPABASE_PASSWORD,
+    sslmode="require",
+)
 
 for tabela in tabelas:
     print(f"{'='*50}")
     print(f"Extraindo tabela: {tabela.upper()}")
     print(f"{'='*50}")
 
-    df = spark.read.jdbc(
-        url=JDBC_URL,
-        table=tabela,
-        properties=connection_properties
-    )
+    # Lê a tabela inteira para um DataFrame pandas
+    pdf = pd.read_sql(f"SELECT * FROM {tabela}", conn)
+    print(f"Registros extraídos: {len(pdf)}")
+    print(pdf.head().to_string(index=False))
 
-    total = df.count()
-    print(f"Registros extraídos: {total}")
-    df.show(truncate=False)
+    # Grava como CSV na Landing Zone (Volume do Unity Catalog) — formato original, sem Delta
+    destino = f"{LANDING_PATH}/{tabela}"
+    os.makedirs(destino, exist_ok=True)
+    pdf.to_csv(f"{destino}/{tabela}.csv", index=False)
 
-    # Salva como CSV no DBFS (landing zone) — formato original, sem Delta
-    (
-        df.coalesce(1)
-        .write
-        .mode("overwrite")
-        .option("header", "true")
-        .csv(f"{LANDING_PATH}/{tabela}")
-    )
+    print(f"Salvo em: {destino}/{tabela}.csv\n")
 
-    print(f"Salvo em: dbfs:{LANDING_PATH}/{tabela}/\n")
-
+conn.close()
 print(f"Extração finalizada em: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
 
 # COMMAND ----------

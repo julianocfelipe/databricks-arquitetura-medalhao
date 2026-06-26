@@ -72,16 +72,19 @@ dim_tempo ─── fato_pedidos ─── dim_produtos
 ## Como executar
 
 ### Pré-requisitos
-1. Conta no [Databricks Community Edition](https://community.cloud.databricks.com)
+1. Conta no [Databricks Free Edition](https://www.databricks.com/learn/free-edition) (serverless)
 2. Conta no [Supabase](https://supabase.com)
-3. Cluster criado com a biblioteca Maven: `org.postgresql:postgresql:42.7.3`
+
+> O Free Edition é serverless — não há cluster nem biblioteca Maven a instalar. O driver do
+> PostgreSQL é instalado dentro do notebook 002 via `%pip install psycopg2-binary`.
 
 ### Passo a passo
-1. Execute o script `sql/setup_supabase.sql` no SQL Editor do Supabase
+1. Crie o banco de origem no Supabase executando o script SQL disponível na
+   [documentação — Landing](https://julianocfelipe.github.io/databricks-arquitetura-medalhao/arquitetura/landing/)
 2. Importe os notebooks da pasta `notebooks/` no workspace do Databricks
 3. Configure as credenciais do Supabase no notebook `002_Landing_Extracao.py`
 4. Execute os notebooks na ordem (001 → 002 → 003 → 004 → 005)
-5. Ou execute o **Job** criado para automação completa
+5. Ou execute o **Job** (Jobs & Pipelines) com as 5 tasks encadeadas para automação completa
 
 ## Estrutura do repositório
 
@@ -92,12 +95,12 @@ dim_tempo ─── fato_pedidos ─── dim_produtos
 │   ├── 003_Bronze_Ingestao.py
 │   ├── 004_Silver_Data_Quality.py
 │   └── 005_Gold_Modelagem_Dimensional.py
-├── sql/
-│   └── setup_supabase.sql   # Script de criação do banco de origem
-├── docs/                    # Documentação e assets
+├── docs/                    # Documentação (MkDocs)
+├── site/                    # Site gerado pelo MkDocs (gh-pages)
+├── mkdocs.yml               # Configuração do MkDocs
 └── README.md
 ```
 
 ## Documentação
 
-Consulte a [documentação completa](https://seu-usuario.github.io/trabalho3-databricks-medalhao) para detalhes da arquitetura e screenshots.
+Consulte a [documentação completa](https://julianocfelipe.github.io/databricks-arquitetura-medalhao/) para detalhes da arquitetura, setup do Supabase, modelo dimensional e o Job de orquestração.

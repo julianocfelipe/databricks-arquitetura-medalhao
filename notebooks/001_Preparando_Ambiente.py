@@ -27,8 +27,6 @@ spark.sql("DROP SCHEMA IF EXISTS bronze CASCADE")
 spark.sql("DROP SCHEMA IF EXISTS silver CASCADE")
 spark.sql("DROP SCHEMA IF EXISTS gold CASCADE")
 
-dbutils.fs.rm("/FileStore/landing/dados", recurse=True)
-
 print("Ambiente anterior removido com sucesso.")
 
 # COMMAND ----------
@@ -73,17 +71,20 @@ spark.sql("SHOW DATABASES").show()
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC ## 4. Criar diretórios da Landing Zone no DBFS
+# MAGIC ## 4. Criar a Landing Zone como Volume do Unity Catalog
+# MAGIC
+# MAGIC No Free Edition (serverless) o DBFS `/FileStore` é restrito. A Landing Zone é criada como
+# MAGIC um **Volume** dentro do schema `landing` → `/Volumes/<catalog>/landing/dados`.
 
 # COMMAND ----------
 
-tabelas = ["clientes", "produtos", "pedidos"]
+spark.sql("CREATE VOLUME IF NOT EXISTS landing.dados COMMENT 'Landing Zone — arquivos CSV brutos'")
 
-for tabela in tabelas:
-    dbutils.fs.mkdirs(f"/FileStore/landing/dados/{tabela}")
+CATALOG      = spark.sql("SELECT current_catalog()").collect()[0][0]
+LANDING_PATH = f"/Volumes/{CATALOG}/landing/dados"
 
-print("Diretórios de Landing Zone criados:")
-display(dbutils.fs.ls("/FileStore/landing/dados/"))
+print(f"Volume da Landing Zone criado em: {LANDING_PATH}")
+display(dbutils.fs.ls(LANDING_PATH))
 
 # COMMAND ----------
 

@@ -1,10 +1,12 @@
 # Trabalho 3 — Databricks: Arquitetura Medalhão
 
-Pipeline de dados completo no **Databricks Free Edition** implementando a **Arquitetura Medalhão**.
+Pipeline de dados completo no **Databricks Free Edition** implementando a **Arquitetura Medalhão**,
+com orquestração via **Jobs & Pipelines**.
 
 ## Objetivo
 
-Construir um pipeline de dados (Landing → Bronze → Silver → Gold) com orquestração via **Jobs & Pipelines**, utilizando o mesmo dataset da Loja Virtual dos trabalhos anteriores.
+Construir um pipeline de dados (**Landing → Bronze → Silver → Gold**) utilizando o mesmo dataset da
+Loja Virtual dos trabalhos anteriores, agora em uma solução **PaaS na nuvem**.
 
 ## Pipeline
 
@@ -12,7 +14,7 @@ Construir um pipeline de dados (Landing → Bronze → Silver → Gold) com orqu
 Supabase (PostgreSQL)
         │  JDBC
         ▼
-   LANDING/DADOS     CSV brutos
+   LANDING / DADOS    CSV brutos
         │
         ▼
      BRONZE           Delta Lake + metadados
@@ -24,18 +26,29 @@ Supabase (PostgreSQL)
       GOLD            Delta Lake + Star Schema
 ```
 
-## Screenshots
+## Navegação
 
-> Adicione aqui screenshots do Databricks mostrando:
-> - Execução dos notebooks
-> - DAG do Job
-> - Tabelas criadas no Catalog Explorer
-> - Resultados das queries no Gold
+- **[Visão Geral](arquitetura/visao-geral.md)** — conceitos da arquitetura e resumo das camadas
+- **[Landing](arquitetura/landing.md)** — extração da origem + setup do Supabase
+- **[Bronze](arquitetura/bronze.md)** — ingestão em Delta Lake
+- **[Silver](arquitetura/silver.md)** — Data Quality e padronização
+- **[Gold](arquitetura/gold.md)** — modelagem dimensional
+- **[Modelo Dimensional](modelo-dimensional.md)** — detalhes do Star Schema
+- **[Jobs & Pipelines](jobs-pipelines.md)** — orquestração sequencial dos notebooks
 
 ## Tecnologias
 
 - **Databricks Free Edition** — plataforma de processamento
-- **Supabase** — banco de dados PostgreSQL na nuvem (origem)
+- **Supabase** — banco PostgreSQL na nuvem (origem)
 - **Delta Lake** — formato de armazenamento ACID
 - **Apache Spark (PySpark)** — processamento distribuído
 - **Jobs & Pipelines** — orquestração sequencial
+
+## Screenshots
+
+> Adicione aqui prints do Databricks mostrando:
+>
+> - Execução dos notebooks
+> - DAG do Job (Jobs & Pipelines)
+> - Tabelas criadas no Catalog Explorer
+> - Resultados das queries no Gold

@@ -4,14 +4,11 @@ As etapas do pipeline são encadeadas em um **Job** do Databricks, executado seq
 
 ## DAG
 
-```
-01_extract_supabase_to_landing
-            ▼
-02_landing_to_bronze
-            ▼
-03_bronze_to_silver
-            ▼
-04_silver_to_gold
+```mermaid
+flowchart TD
+    L["landing<br/>01_extract_supabase_to_landing"] --> B["bronze<br/>02_landing_to_bronze"]
+    B --> S["silver<br/>03_bronze_to_silver"]
+    S --> G["gold<br/>04_silver_to_gold"]
 ```
 
 | Ordem | Task | Notebook | Depende de |

@@ -766,17 +766,11 @@
 (Landing → Bronze → Silver → Gold), extraindo um banco PostgreSQL hospedado no <strong>Supabase</strong> e
 orquestrando as etapas via <strong>Jobs &amp; Pipelines</strong>.</p>
 <h2 id="pipeline">Pipeline</h2>
-<div class="highlight"><pre><span></span><code>Supabase (PostgreSQL)
-        │  JDBC
-        ▼
-   LANDING    CSV bruto em Volume do Unity Catalog
-        ▼
-   BRONZE     cópia em Delta Lake
-        ▼
-   SILVER     Delta Lake + Data Quality
-        ▼
-    GOLD      Star Schema (modelo dimensional)
-</code></pre></div>
+<pre class="mermaid"><code>flowchart TD
+    SB[("Supabase&lt;br/&gt;PostgreSQL")] --&gt;|JDBC| L["LANDING&lt;br/&gt;CSV no Volume"]
+    L --&gt; B["BRONZE&lt;br/&gt;Delta Lake"]
+    B --&gt; S["SILVER&lt;br/&gt;Data Quality"]
+    S --&gt; G["GOLD&lt;br/&gt;Star Schema"]</code></pre>
 <h2 id="conteudo">Conteúdo</h2>
 <ul>
 <li><a href="arquitetura/visao-geral/">Visão Geral</a></li>

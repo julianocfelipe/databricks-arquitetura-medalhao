@@ -4,10 +4,10 @@
 
 Constrói o **Star Schema** a partir do Silver, em Delta Lake.
 
-```
-    dim_cliente
-         │
-    fato_pedido ─── dim_produto
+```mermaid
+flowchart LR
+    dim_cliente --> fato_pedido
+    dim_produto --> fato_pedido
 ```
 
 | Tabela | Tipo | Chave |

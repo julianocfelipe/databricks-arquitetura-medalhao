@@ -720,14 +720,10 @@
 <h1 id="jobs-pipelines">Jobs &amp; Pipelines</h1>
 <p>As etapas do pipeline são encadeadas em um <strong>Job</strong> do Databricks, executado sequencialmente.</p>
 <h2 id="dag">DAG</h2>
-<div class="highlight"><pre><span></span><code>01_extract_supabase_to_landing
-            ▼
-02_landing_to_bronze
-            ▼
-03_bronze_to_silver
-            ▼
-04_silver_to_gold
-</code></pre></div>
+<pre class="mermaid"><code>flowchart TD
+    L["landing&lt;br/&gt;01_extract_supabase_to_landing"] --&gt; B["bronze&lt;br/&gt;02_landing_to_bronze"]
+    B --&gt; S["silver&lt;br/&gt;03_bronze_to_silver"]
+    S --&gt; G["gold&lt;br/&gt;04_silver_to_gold"]</code></pre>
 <table>
 <thead>
 <tr>

@@ -2,10 +2,40 @@
 
 Star Schema da camada Gold: uma fato central cercada por dimensões.
 
-```
-    dim_cliente
-         │
-    fato_pedido ─── dim_produto
+```mermaid
+erDiagram
+    dim_cliente ||--o{ fato_pedido : "cliente_id"
+    dim_produto ||--o{ fato_pedido : "produto_id"
+
+    dim_cliente {
+        string cliente_id PK
+        string nome_cliente
+        string email
+        string cidade
+        timestamp gold_created_at
+    }
+
+    dim_produto {
+        string produto_id PK
+        string nome_produto
+        string categoria
+        double preco
+        timestamp gold_created_at
+    }
+
+    fato_pedido {
+        string pedido_id PK
+        string cliente_id FK
+        string produto_id FK
+        date data_pedido
+        int ano
+        int mes
+        int dia
+        int quantidade
+        double valor_total
+        string status
+        timestamp gold_created_at
+    }
 ```
 
 ## `fato_pedido`

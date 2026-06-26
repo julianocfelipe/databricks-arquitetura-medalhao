@@ -6,17 +6,12 @@ orquestrando as etapas via **Jobs & Pipelines**.
 
 ## Pipeline
 
-```
-Supabase (PostgreSQL)
-        │  JDBC
-        ▼
-   LANDING    CSV bruto em Volume do Unity Catalog
-        ▼
-   BRONZE     cópia em Delta Lake
-        ▼
-   SILVER     Delta Lake + Data Quality
-        ▼
-    GOLD      Star Schema (modelo dimensional)
+```mermaid
+flowchart TD
+    SB[("Supabase<br/>PostgreSQL")] -->|JDBC| L["LANDING<br/>CSV no Volume"]
+    L --> B["BRONZE<br/>Delta Lake"]
+    B --> S["SILVER<br/>Data Quality"]
+    S --> G["GOLD<br/>Star Schema"]
 ```
 
 ## Conteúdo

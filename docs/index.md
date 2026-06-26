@@ -46,3 +46,4 @@ Supabase (PostgreSQL)
 - [Unity Catalog — Volumes](https://docs.databricks.com/aws/en/volumes/)
 - [PostgreSQL JDBC Driver](https://jdbc.postgresql.org/documentation/)
 - [Supabase — Connecting to Postgres](https://supabase.com/docs/guides/database/connecting-to-postgres)
+- [Claude (Anthropic)](https://www.anthropic.com/claude) — assistente de IA usado no desenvolvimento

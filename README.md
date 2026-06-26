@@ -53,13 +53,14 @@ Supabase (PostgreSQL)
 
 ## Tecnologias
 
-- Databricks Free Edition (serverless)
-- Apache Spark (PySpark)
-- Delta Lake
-- Unity Catalog (schemas e Volumes)
-- PostgreSQL JDBC Driver
-- Supabase (PostgreSQL gerenciado)
-- MkDocs + Material (documentação)
+![Databricks](https://img.shields.io/badge/Databricks-Free_Edition-FF3621?logo=databricks&logoColor=white)
+![Apache Spark](https://img.shields.io/badge/Apache_Spark-PySpark-E25A1C?logo=apachespark&logoColor=white)
+![Delta Lake](https://img.shields.io/badge/Delta_Lake-Lakehouse-00ADD4?logo=delta&logoColor=white)
+![Unity Catalog](https://img.shields.io/badge/Unity_Catalog-Volumes-FF3621?logo=databricks&logoColor=white)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-JDBC-4169E1?logo=postgresql&logoColor=white)
+![Supabase](https://img.shields.io/badge/Supabase-PostgreSQL-3FCF8E?logo=supabase&logoColor=white)
+![Python](https://img.shields.io/badge/Python-3-3776AB?logo=python&logoColor=white)
+![MkDocs](https://img.shields.io/badge/MkDocs-Material-526CFE?logo=materialformkdocs&logoColor=white)
 
 ## Como executar
 
@@ -91,3 +92,4 @@ Disponível em **https://julianocfelipe.github.io/databricks-arquitetura-medalha
 - [PostgreSQL JDBC Driver](https://jdbc.postgresql.org/documentation/)
 - [Supabase — Connecting to Postgres](https://supabase.com/docs/guides/database/connecting-to-postgres)
 - [Material for MkDocs](https://squidfunk.github.io/mkdocs-material/)
+- [Claude (Anthropic)](https://www.anthropic.com/claude) — assistente de IA usado no desenvolvimento

@@ -78,7 +78,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#camada-bronze" class="md-skip">
+        <a href="#bronze" class="md-skip">
           Skip to content
         </a>
       
@@ -461,24 +461,6 @@
         
       
       
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Bronze
-  
-
-    
-  </span>
-  
-  
-
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
       <a href="./" class="md-nav__link md-nav__link--active">
         
   
@@ -495,69 +477,6 @@
   
 
       </a>
-      
-        
-
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#o-que-a-camada-faz" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        O que a camada faz
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#caracteristicas" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Características
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#validacoes-do-notebook" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Validações do notebook
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#resultado" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Resultado
-      
-    </span>
-  </a>
-  
-</li>
-      
-    </ul>
-  
-</nav>
       
     </li>
   
@@ -701,58 +620,6 @@
     
   
   
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#o-que-a-camada-faz" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        O que a camada faz
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#caracteristicas" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Características
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#validacoes-do-notebook" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Validações do notebook
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#resultado" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Resultado
-      
-    </span>
-  </a>
-  
-</li>
-      
-    </ul>
-  
 </nav>
                   </div>
                 </div>
@@ -768,17 +635,11 @@
 
 
 
-<h1 id="camada-bronze">Camada Bronze</h1>
+<h1 id="bronze">Bronze</h1>
 <blockquote>
 <p>Notebook: <code>02_landing_to_bronze.ipynb</code></p>
 </blockquote>
-<p>A <strong>Bronze</strong> é a cópia das tabelas da camada Landing, agora em <strong>Delta Lake</strong> (ACID, metadados,
-time travel). Mantém os dados brutos, sem transformação de valores.</p>
-<h2 id="o-que-a-camada-faz">O que a camada faz</h2>
-<ul>
-<li>Lê as tabelas do schema <code>landing</code> (<code>workspace.landing.{tabela}</code>)</li>
-<li>Grava cada uma como <strong>tabela Delta gerenciada</strong> no schema <code>bronze</code></li>
-</ul>
+<p>Cópia das tabelas da Landing para <strong>Delta Lake</strong> (ACID, time travel), sem transformação de valores.</p>
 <div class="highlight"><pre><span></span><code><span class="k">for</span> <span class="n">table</span> <span class="ow">in</span> <span class="n">TABLES</span><span class="p">:</span>
     <span class="n">df</span> <span class="o">=</span> <span class="n">spark</span><span class="o">.</span><span class="n">table</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">LANDING_SCHEMA</span><span class="si">}</span><span class="s2">.</span><span class="si">{</span><span class="n">table</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 
@@ -789,21 +650,7 @@ time travel). Mantém os dados brutos, sem transformação de valores.</p>
             <span class="o">.</span><span class="n">saveAsTable</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">BRONZE_SCHEMA</span><span class="si">}</span><span class="s2">.</span><span class="si">{</span><span class="n">table</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
     <span class="p">)</span>
 </code></pre></div>
-<h2 id="caracteristicas">Características</h2>
-<ul>
-<li><strong>Formato Delta</strong> (ACID, metadados, time travel)</li>
-<li>Cópia fiel da landing, sem transformação de valores</li>
-<li>Já carrega os metadados de auditoria adicionados na Landing (<code>_source_table</code>, <code>_extracted_at</code>)</li>
-</ul>
-<h2 id="validacoes-do-notebook">Validações do notebook</h2>
-<ul>
-<li><code>SHOW TABLES IN workspace.bronze</code></li>
-<li><code>spark.table("workspace.bronze.clientes").show()</code></li>
-<li><code>DESCRIBE DETAIL workspace.bronze.clientes</code></li>
-</ul>
-<h2 id="resultado">Resultado</h2>
-<p>Tabelas Delta <code>bronze.clientes</code>, <code>bronze.produtos</code> e <code>bronze.pedidos</code>, prontas para receber as
-regras de <strong>Data Quality</strong> na camada Silver.</p>
+<p>Resultado: <code>bronze.clientes</code>, <code>bronze.produtos</code> e <code>bronze.pedidos</code>.</p>
 
 
 

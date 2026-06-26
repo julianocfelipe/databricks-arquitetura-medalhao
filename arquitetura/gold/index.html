@@ -78,7 +78,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#camada-gold" class="md-skip">
+        <a href="#gold" class="md-skip">
           Skip to content
         </a>
       
@@ -517,24 +517,6 @@
         
       
       
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Gold
-  
-
-    
-  </span>
-  
-  
-
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
       <a href="./" class="md-nav__link md-nav__link--active">
         
   
@@ -551,69 +533,6 @@
   
 
       </a>
-      
-        
-
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#star-schema" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Star Schema
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#como-e-construido" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Como é construído
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#exemplo-de-consulta-star-schema-em-acao" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Exemplo de consulta (Star Schema em ação)
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#resultado" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Resultado
-      
-    </span>
-  </a>
-  
-</li>
-      
-    </ul>
-  
-</nav>
       
     </li>
   
@@ -701,58 +620,6 @@
     
   
   
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#star-schema" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Star Schema
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#como-e-construido" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Como é construído
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#exemplo-de-consulta-star-schema-em-acao" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Exemplo de consulta (Star Schema em ação)
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#resultado" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Resultado
-      
-    </span>
-  </a>
-  
-</li>
-      
-    </ul>
-  
 </nav>
                   </div>
                 </div>
@@ -768,23 +635,21 @@
 
 
 
-<h1 id="camada-gold">Camada Gold</h1>
+<h1 id="gold">Gold</h1>
 <blockquote>
 <p>Notebook: <code>04_silver_to_gold.ipynb</code></p>
 </blockquote>
-<p>A <strong>Gold</strong> lê os dados do Silver e constrói o <strong>modelo dimensional</strong> — um <strong>Star Schema</strong> otimizado
-para consumo analítico e BI. Formato <strong>Delta Lake</strong>.</p>
-<h2 id="star-schema">Star Schema</h2>
-<div class="highlight"><pre><span></span><code>        dim_cliente
-             │
-        fato_pedido ─── dim_produto
+<p>Constrói o <strong>Star Schema</strong> a partir do Silver, em Delta Lake.</p>
+<div class="highlight"><pre><span></span><code>    dim_cliente
+         │
+    fato_pedido ─── dim_produto
 </code></pre></div>
 <table>
 <thead>
 <tr>
 <th>Tabela</th>
 <th>Tipo</th>
-<th>Chave de negócio</th>
+<th>Chave</th>
 </tr>
 </thead>
 <tbody>
@@ -805,17 +670,8 @@ para consumo analítico e BI. Formato <strong>Delta Lake</strong>.</p>
 </tr>
 </tbody>
 </table>
-<blockquote>
-<p>Detalhes do modelo na página <strong><a href="../../modelo-dimensional/">Modelo Dimensional</a></strong>.</p>
-</blockquote>
-<h2 id="como-e-construido">Como é construído</h2>
-<ol>
-<li><strong><code>dim_cliente</code></strong> e <strong><code>dim_produto</code></strong> — selecionam os atributos descritivos do Silver e renomeiam a
-   chave de negócio (<code>id</code> → <code>cliente_id</code> / <code>produto_id</code>).</li>
-<li><strong><code>fato_pedido</code></strong> — parte da tabela <code>silver.pedidos</code>, mantém as chaves de negócio (<code>cliente_id</code>,
-   <code>produto_id</code>), as métricas (<code>quantidade</code>, <code>valor_total</code>), o <code>status</code> e deriva atributos de tempo
-   (<code>ano</code>, <code>mes</code>, <code>dia</code>) a partir de <code>data_pedido</code>.</li>
-</ol>
+<p>A fato <code>fato_pedido</code> guarda as métricas (<code>quantidade</code>, <code>valor_total</code>), o <code>status</code> e os atributos de
+tempo derivados de <code>data_pedido</code> (<code>ano</code>, <code>mes</code>, <code>dia</code>).</p>
 <div class="highlight"><pre><span></span><code><span class="n">fato_pedido</span> <span class="o">=</span> <span class="p">(</span>
     <span class="n">pedidos</span>
         <span class="o">.</span><span class="n">select</span><span class="p">(</span>
@@ -833,19 +689,7 @@ para consumo analítico e BI. Formato <strong>Delta Lake</strong>.</p>
         <span class="p">)</span>
 <span class="p">)</span>
 </code></pre></div>
-<h2 id="exemplo-de-consulta-star-schema-em-acao">Exemplo de consulta (Star Schema em ação)</h2>
-<div class="highlight"><pre><span></span><code><span class="k">SELECT</span>
-<span class="w">    </span><span class="n">p</span><span class="p">.</span><span class="n">categoria</span><span class="p">,</span>
-<span class="w">    </span><span class="k">COUNT</span><span class="p">(</span><span class="n">f</span><span class="p">.</span><span class="n">pedido_id</span><span class="p">)</span><span class="w">   </span><span class="k">AS</span><span class="w"> </span><span class="n">total_pedidos</span><span class="p">,</span>
-<span class="w">    </span><span class="k">SUM</span><span class="p">(</span><span class="n">f</span><span class="p">.</span><span class="n">valor_total</span><span class="p">)</span><span class="w">   </span><span class="k">AS</span><span class="w"> </span><span class="n">receita_total</span>
-<span class="k">FROM</span><span class="w"> </span><span class="n">workspace</span><span class="p">.</span><span class="n">gold</span><span class="p">.</span><span class="n">fato_pedido</span><span class="w"> </span><span class="n">f</span>
-<span class="k">JOIN</span><span class="w"> </span><span class="n">workspace</span><span class="p">.</span><span class="n">gold</span><span class="p">.</span><span class="n">dim_produto</span><span class="w"> </span><span class="n">p</span><span class="w"> </span><span class="k">ON</span><span class="w"> </span><span class="n">f</span><span class="p">.</span><span class="n">produto_id</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">p</span><span class="p">.</span><span class="n">produto_id</span>
-<span class="k">GROUP</span><span class="w"> </span><span class="k">BY</span><span class="w"> </span><span class="n">p</span><span class="p">.</span><span class="n">categoria</span>
-<span class="k">ORDER</span><span class="w"> </span><span class="k">BY</span><span class="w"> </span><span class="n">receita_total</span><span class="w"> </span><span class="k">DESC</span><span class="p">;</span>
-</code></pre></div>
-<h2 id="resultado">Resultado</h2>
-<p>Schema <code>gold</code> com <code>dim_cliente</code>, <code>dim_produto</code> e <code>fato_pedido</code> —
-<strong>pipeline Medalhão completo</strong>: <code>Landing → Bronze → Silver → Gold</code>.</p>
+<p>Detalhes do modelo em <a href="../../modelo-dimensional/">Modelo Dimensional</a>.</p>
 
 
 

@@ -78,7 +78,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#camada-landing" class="md-skip">
+        <a href="#landing" class="md-skip">
           Skip to content
         </a>
       
@@ -484,10 +484,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#o-que-a-camada-faz" class="md-nav__link">
+  <a href="#etapas" class="md-nav__link">
     <span class="md-ellipsis">
       
-        O que a camada faz
+        Etapas
       
     </span>
   </a>
@@ -495,10 +495,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#configuracao-da-conexao" class="md-nav__link">
+  <a href="#conexao-session-pooler-ipv4" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Configuração da conexão
+        Conexão (Session Pooler — IPv4)
       
     </span>
   </a>
@@ -506,21 +506,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#banco-de-origem-setup-do-supabase" class="md-nav__link">
+  <a href="#banco-de-origem-supabase" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Banco de origem (setup do Supabase)
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#resultado" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Resultado
+        Banco de origem (Supabase)
       
     </span>
   </a>
@@ -708,10 +697,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#o-que-a-camada-faz" class="md-nav__link">
+  <a href="#etapas" class="md-nav__link">
     <span class="md-ellipsis">
       
-        O que a camada faz
+        Etapas
       
     </span>
   </a>
@@ -719,10 +708,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#configuracao-da-conexao" class="md-nav__link">
+  <a href="#conexao-session-pooler-ipv4" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Configuração da conexão
+        Conexão (Session Pooler — IPv4)
       
     </span>
   </a>
@@ -730,21 +719,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#banco-de-origem-setup-do-supabase" class="md-nav__link">
+  <a href="#banco-de-origem-supabase" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Banco de origem (setup do Supabase)
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#resultado" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Resultado
+        Banco de origem (Supabase)
       
     </span>
   </a>
@@ -768,29 +746,19 @@
 
 
 
-<h1 id="camada-landing">Camada Landing</h1>
+<h1 id="landing">Landing</h1>
 <blockquote>
 <p>Notebook: <code>01_extract_supabase_to_landing.ipynb</code></p>
 </blockquote>
-<p>A <strong>Landing</strong> é a camada provisória responsável pela <strong>primeira ingestão</strong> dos dados no Data Lake.
-Os dados são gravados no <strong>formato original da origem</strong> — neste trabalho, <strong>CSV</strong> (origem relacional).</p>
-<p>Este notebook também <strong>prepara o ambiente</strong>: cria os schemas (<code>landing</code>, <code>bronze</code>, <code>silver</code>, <code>gold</code>)
-e o <strong>Volume</strong> da Landing Zone.</p>
-<div class="highlight"><pre><span></span><code><span class="k">CREATE</span><span class="w"> </span><span class="k">SCHEMA</span><span class="w"> </span><span class="k">IF</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">EXISTS</span><span class="w"> </span><span class="n">landing</span><span class="p">;</span>
-<span class="k">CREATE</span><span class="w"> </span><span class="k">SCHEMA</span><span class="w"> </span><span class="k">IF</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">EXISTS</span><span class="w"> </span><span class="n">bronze</span><span class="p">;</span>
-<span class="k">CREATE</span><span class="w"> </span><span class="k">SCHEMA</span><span class="w"> </span><span class="k">IF</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">EXISTS</span><span class="w"> </span><span class="n">silver</span><span class="p">;</span>
-<span class="k">CREATE</span><span class="w"> </span><span class="k">SCHEMA</span><span class="w"> </span><span class="k">IF</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">EXISTS</span><span class="w"> </span><span class="n">gold</span><span class="p">;</span>
-
-<span class="k">CREATE</span><span class="w"> </span><span class="n">VOLUME</span><span class="w"> </span><span class="k">IF</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">EXISTS</span><span class="w"> </span><span class="n">workspace</span><span class="p">.</span><span class="n">landing</span><span class="p">.</span><span class="n">dados</span><span class="p">;</span>
-</code></pre></div>
-<h2 id="o-que-a-camada-faz">O que a camada faz</h2>
-<ul>
-<li>Conecta no banco de origem (<strong>Supabase / PostgreSQL</strong>) via <strong>JDBC</strong></li>
-<li>Extrai <strong>todas as tabelas</strong> (<code>clientes</code>, <code>produtos</code>, <code>pedidos</code>)</li>
-<li>Adiciona metadados de auditoria (<code>_source_table</code>, <code>_extracted_at</code>)</li>
-<li>Grava cada tabela como <strong>CSV</strong> no Volume <code>/Volumes/workspace/landing/dados/{tabela}/</code></li>
-<li>Registra as tabelas no schema <code>landing</code></li>
-</ul>
+<p>Primeira ingestão dos dados, no formato original da origem (CSV). O notebook também cria os schemas e
+o Volume da Landing Zone.</p>
+<h2 id="etapas">Etapas</h2>
+<ol>
+<li>Cria os schemas (<code>landing</code>, <code>bronze</code>, <code>silver</code>, <code>gold</code>) e o Volume <code>workspace.landing.dados</code>.</li>
+<li>Lê as tabelas do Supabase via <strong>JDBC</strong>.</li>
+<li>Grava cada tabela como CSV no Volume <code>/Volumes/workspace/landing/dados/{tabela}/</code>.</li>
+<li>Registra as tabelas no schema <code>landing</code>.</li>
+</ol>
 <div class="highlight"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">read_supabase_table</span><span class="p">(</span><span class="n">table_name</span><span class="p">):</span>
     <span class="k">return</span> <span class="p">(</span>
         <span class="n">spark</span><span class="o">.</span><span class="n">read</span>
@@ -803,42 +771,19 @@ e o <strong>Volume</strong> da Landing Zone.</p>
             <span class="o">.</span><span class="n">load</span><span class="p">()</span>
     <span class="p">)</span>
 </code></pre></div>
-<div class="admonition info">
-<p class="admonition-title">Databricks Free Edition é serverless</p>
-<p>O driver JDBC do PostgreSQL (<code>org.postgresql.Driver</code>) <strong>já vem incluído no Databricks Runtime</strong>,
-então <strong>não é preciso instalar nada</strong> (nem biblioteca Maven nem <code>pip</code>). A Landing Zone usa um
-<strong>Volume</strong> do Unity Catalog (<code>/Volumes/workspace/landing/dados</code>), e não o DBFS <code>/FileStore</code>
-(restrito no serverless).</p>
-</div>
-<div class="admonition warning">
-<p class="admonition-title">Conexão: use o Session Pooler (IPv4)</p>
-<p>A conexão <strong>direta</strong> (<code>db.xxxx.supabase.co</code>) costuma ser apenas IPv6 e não é alcançável pelo
-Databricks serverless. Use os dados do <strong>Session Pooler</strong> (IPv4, porta <code>5432</code>):
-host <code>aws-1-&lt;regiao&gt;.pooler.supabase.com</code> e usuário <code>postgres.&lt;project-ref&gt;</code>.</p>
-</div>
-<h2 id="configuracao-da-conexao">Configuração da conexão</h2>
-<p>No início do notebook, preencha as credenciais do <strong>Session Pooler</strong> do seu projeto Supabase
-(em <strong>Connect → Session pooler</strong>):</p>
+<h2 id="conexao-session-pooler-ipv4">Conexão (Session Pooler — IPv4)</h2>
 <div class="highlight"><pre><span></span><code><span class="n">SUPABASE_HOST</span>     <span class="o">=</span> <span class="s2">&quot;aws-1-&lt;regiao&gt;.pooler.supabase.com&quot;</span>
 <span class="n">SUPABASE_PORT</span>     <span class="o">=</span> <span class="s2">&quot;5432&quot;</span>
 <span class="n">SUPABASE_DATABASE</span> <span class="o">=</span> <span class="s2">&quot;postgres&quot;</span>
 <span class="n">SUPABASE_USER</span>     <span class="o">=</span> <span class="s2">&quot;postgres.&lt;project-ref&gt;&quot;</span>
-<span class="n">SUPABASE_PASSWORD</span> <span class="o">=</span> <span class="s2">&quot;SUA_SENHA_AQUI&quot;</span>
+<span class="n">SUPABASE_PASSWORD</span> <span class="o">=</span> <span class="s2">&quot;&lt;senha&gt;&quot;</span>
 </code></pre></div>
-<h2 id="banco-de-origem-setup-do-supabase">Banco de origem (setup do Supabase)</h2>
-<p>Antes de extrair, o banco de origem precisa existir. Execute o script abaixo no
-<strong>Supabase → SQL Editor → New Query</strong>. Ele cria as tabelas e popula o dataset da Loja Virtual
-(o mesmo dos trabalhos 1 e 2).</p>
-<div class="highlight"><pre><span></span><code><span class="c1">-- ============================================================</span>
-<span class="c1">-- Setup Supabase — LojaVirtualDB</span>
-<span class="c1">-- ============================================================</span>
-
-<span class="c1">-- 1. Remove tabelas se já existirem (ordem respeitando FKs)</span>
-<span class="k">DROP</span><span class="w"> </span><span class="k">TABLE</span><span class="w"> </span><span class="k">IF</span><span class="w"> </span><span class="k">EXISTS</span><span class="w"> </span><span class="n">pedidos</span><span class="w">  </span><span class="k">CASCADE</span><span class="p">;</span>
+<h2 id="banco-de-origem-supabase">Banco de origem (Supabase)</h2>
+<p>Execute o script abaixo no <strong>SQL Editor</strong> do Supabase para criar e popular as tabelas de origem.</p>
+<div class="highlight"><pre><span></span><code><span class="k">DROP</span><span class="w"> </span><span class="k">TABLE</span><span class="w"> </span><span class="k">IF</span><span class="w"> </span><span class="k">EXISTS</span><span class="w"> </span><span class="n">pedidos</span><span class="w">  </span><span class="k">CASCADE</span><span class="p">;</span>
 <span class="k">DROP</span><span class="w"> </span><span class="k">TABLE</span><span class="w"> </span><span class="k">IF</span><span class="w"> </span><span class="k">EXISTS</span><span class="w"> </span><span class="n">produtos</span><span class="w"> </span><span class="k">CASCADE</span><span class="p">;</span>
 <span class="k">DROP</span><span class="w"> </span><span class="k">TABLE</span><span class="w"> </span><span class="k">IF</span><span class="w"> </span><span class="k">EXISTS</span><span class="w"> </span><span class="n">clientes</span><span class="w"> </span><span class="k">CASCADE</span><span class="p">;</span>
 
-<span class="c1">-- 2. Cria tabelas</span>
 <span class="k">CREATE</span><span class="w"> </span><span class="k">TABLE</span><span class="w"> </span><span class="n">clientes</span><span class="w"> </span><span class="p">(</span>
 <span class="w">    </span><span class="n">id</span><span class="w">      </span><span class="nb">INTEGER</span><span class="w"> </span><span class="k">PRIMARY</span><span class="w"> </span><span class="k">KEY</span><span class="p">,</span>
 <span class="w">    </span><span class="n">nome</span><span class="w">    </span><span class="nb">VARCHAR</span><span class="p">(</span><span class="mi">100</span><span class="p">)</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="p">,</span>
@@ -864,7 +809,6 @@ host <code>aws-1-&lt;regiao&gt;.pooler.supabase.com</code> e usuário <code>post
 <span class="w">    </span><span class="n">status</span><span class="w">      </span><span class="nb">VARCHAR</span><span class="p">(</span><span class="mi">50</span><span class="p">)</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span>
 <span class="p">);</span>
 
-<span class="c1">-- 3. Insere dados (mesmo dataset dos trabalhos 1 e 2)</span>
 <span class="k">INSERT</span><span class="w"> </span><span class="k">INTO</span><span class="w"> </span><span class="n">clientes</span><span class="w"> </span><span class="p">(</span><span class="n">id</span><span class="p">,</span><span class="w"> </span><span class="n">nome</span><span class="p">,</span><span class="w"> </span><span class="n">email</span><span class="p">,</span><span class="w"> </span><span class="n">cidade</span><span class="p">)</span><span class="w"> </span><span class="k">VALUES</span>
 <span class="w">    </span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;Ana Souza&#39;</span><span class="p">,</span><span class="w">    </span><span class="s1">&#39;ana@email.com&#39;</span><span class="p">,</span><span class="w">    </span><span class="s1">&#39;Florianopolis&#39;</span><span class="p">),</span>
 <span class="w">    </span><span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;Bruno Lima&#39;</span><span class="p">,</span><span class="w">   </span><span class="s1">&#39;bruno@email.com&#39;</span><span class="p">,</span><span class="w">  </span><span class="s1">&#39;Criciuma&#39;</span><span class="p">),</span>
@@ -885,15 +829,7 @@ host <code>aws-1-&lt;regiao&gt;.pooler.supabase.com</code> e usuário <code>post
 <span class="w">    </span><span class="p">(</span><span class="mi">3</span><span class="p">,</span><span class="w"> </span><span class="mi">3</span><span class="p">,</span><span class="w"> </span><span class="mi">3</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w">  </span><span class="mi">150</span><span class="p">.</span><span class="mi">00</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;2024-01-15&#39;</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;em_transito&#39;</span><span class="p">),</span>
 <span class="w">    </span><span class="p">(</span><span class="mi">4</span><span class="p">,</span><span class="w"> </span><span class="mi">4</span><span class="p">,</span><span class="w"> </span><span class="mi">4</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="mi">1200</span><span class="p">.</span><span class="mi">00</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;2024-01-18&#39;</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;processando&#39;</span><span class="p">),</span>
 <span class="w">    </span><span class="p">(</span><span class="mi">5</span><span class="p">,</span><span class="w"> </span><span class="mi">5</span><span class="p">,</span><span class="w"> </span><span class="mi">5</span><span class="p">,</span><span class="w"> </span><span class="mi">2</span><span class="p">,</span><span class="w">  </span><span class="mi">500</span><span class="p">.</span><span class="mi">00</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;2024-01-20&#39;</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;processando&#39;</span><span class="p">);</span>
-
-<span class="c1">-- 4. Validação</span>
-<span class="k">SELECT</span><span class="w"> </span><span class="s1">&#39;clientes&#39;</span><span class="w"> </span><span class="k">AS</span><span class="w"> </span><span class="n">tabela</span><span class="p">,</span><span class="w"> </span><span class="k">COUNT</span><span class="p">(</span><span class="o">*</span><span class="p">)</span><span class="w"> </span><span class="k">AS</span><span class="w"> </span><span class="n">total</span><span class="w"> </span><span class="k">FROM</span><span class="w"> </span><span class="n">clientes</span>
-<span class="k">UNION</span><span class="w"> </span><span class="k">ALL</span><span class="w"> </span><span class="k">SELECT</span><span class="w"> </span><span class="s1">&#39;produtos&#39;</span><span class="p">,</span><span class="w"> </span><span class="k">COUNT</span><span class="p">(</span><span class="o">*</span><span class="p">)</span><span class="w"> </span><span class="k">FROM</span><span class="w"> </span><span class="n">produtos</span>
-<span class="k">UNION</span><span class="w"> </span><span class="k">ALL</span><span class="w"> </span><span class="k">SELECT</span><span class="w"> </span><span class="s1">&#39;pedidos&#39;</span><span class="p">,</span><span class="w">  </span><span class="k">COUNT</span><span class="p">(</span><span class="o">*</span><span class="p">)</span><span class="w"> </span><span class="k">FROM</span><span class="w"> </span><span class="n">pedidos</span><span class="p">;</span>
 </code></pre></div>
-<h2 id="resultado">Resultado</h2>
-<p>Ao final, os dados brutos ficam disponíveis no Volume <code>/Volumes/workspace/landing/dados/</code> e como
-tabelas no schema <code>landing</code>, prontos para serem ingeridos pela camada <strong>Bronze</strong>.</p>
 
 
 

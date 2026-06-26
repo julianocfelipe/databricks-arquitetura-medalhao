@@ -78,7 +78,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#visao-geral-da-arquitetura-medalhao" class="md-skip">
+        <a href="#visao-geral" class="md-skip">
           Skip to content
         </a>
       
@@ -456,10 +456,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#fluxo-do-pipeline" class="md-nav__link">
+  <a href="#fluxo" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Fluxo do pipeline
+        Fluxo
       
     </span>
   </a>
@@ -467,32 +467,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#resumo-das-camadas" class="md-nav__link">
+  <a href="#camadas" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Resumo das camadas
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#caracteristica-de-cada-camada" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Característica de cada camada
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#onde-o-ambiente-e-preparado" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Onde o ambiente é preparado
+        Camadas
       
     </span>
   </a>
@@ -708,10 +686,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#fluxo-do-pipeline" class="md-nav__link">
+  <a href="#fluxo" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Fluxo do pipeline
+        Fluxo
       
     </span>
   </a>
@@ -719,32 +697,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#resumo-das-camadas" class="md-nav__link">
+  <a href="#camadas" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Resumo das camadas
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#caracteristica-de-cada-camada" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Característica de cada camada
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#onde-o-ambiente-e-preparado" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Onde o ambiente é preparado
+        Camadas
       
     </span>
   </a>
@@ -768,33 +724,26 @@
 
 
 
-<h1 id="visao-geral-da-arquitetura-medalhao">Visão Geral da Arquitetura Medalhão</h1>
-<p>A <strong>Arquitetura Medalhão</strong> (também chamada de <em>multi-hop</em>) é um padrão de design de dados usado para
-organizar logicamente os dados de um <strong>Data Lakehouse</strong>. O objetivo é <strong>melhorar de forma incremental e
-progressiva</strong> a estrutura e a qualidade dos dados à medida que eles fluem pelas camadas.</p>
-<p>Neste trabalho, o pipeline tem <strong>quatro camadas</strong> (Landing → Bronze → Silver → Gold), todas executadas
-no <strong>Databricks Free Edition</strong> (serverless) e encadeadas por um <strong>Job (Jobs &amp; Pipelines)</strong>.</p>
-<h2 id="fluxo-do-pipeline">Fluxo do pipeline</h2>
+<h1 id="visao-geral">Visão Geral</h1>
+<p>A <strong>Arquitetura Medalhão</strong> organiza o lakehouse em camadas, refinando os dados de forma incremental
+da ingestão bruta (Landing) até o modelo pronto para consumo (Gold).</p>
+<h2 id="fluxo">Fluxo</h2>
 <div class="highlight"><pre><span></span><code>Supabase (PostgreSQL)
         │  JDBC
         ▼
-   LANDING              CSV brutos (formato original da origem)
-        │
+   LANDING    CSV bruto em Volume do Unity Catalog
         ▼
-     BRONZE             cópia em Delta Lake
-        │
+   BRONZE     cópia em Delta Lake
         ▼
-     SILVER             Delta Lake + Data Quality
-        │
+   SILVER     Delta Lake + Data Quality
         ▼
-      GOLD              Delta Lake + Star Schema
+    GOLD      Star Schema (modelo dimensional)
 </code></pre></div>
-<h2 id="resumo-das-camadas">Resumo das camadas</h2>
+<h2 id="camadas">Camadas</h2>
 <table>
 <thead>
 <tr>
 <th>Camada</th>
-<th>Formato</th>
 <th>Conteúdo</th>
 <th>Notebook</th>
 </tr>
@@ -802,46 +751,29 @@ no <strong>Databricks Free Edition</strong> (serverless) e encadeadas por um <st
 <tbody>
 <tr>
 <td><strong>Landing</strong></td>
-<td>CSV</td>
-<td>Cópia bruta da origem (Volume), camada provisória de ingestão</td>
+<td>Cópia bruta da origem em CSV (Volume)</td>
 <td><code>01_extract_supabase_to_landing.ipynb</code></td>
 </tr>
 <tr>
 <td><strong>Bronze</strong></td>
-<td>Delta Lake</td>
-<td>Cópia das tabelas da Landing em Delta</td>
+<td>Cópia das tabelas em Delta Lake</td>
 <td><code>02_landing_to_bronze.ipynb</code></td>
 </tr>
 <tr>
 <td><strong>Silver</strong></td>
-<td>Delta Lake</td>
-<td>Dados limpos, padronizados e validados (Data Quality)</td>
+<td>Dados limpos, padronizados e validados</td>
 <td><code>03_bronze_to_silver.ipynb</code></td>
 </tr>
 <tr>
 <td><strong>Gold</strong></td>
-<td>Delta Lake</td>
-<td>Modelo dimensional (star schema) para consumo/BI</td>
+<td>Modelo dimensional (star schema)</td>
 <td><code>04_silver_to_gold.ipynb</code></td>
 </tr>
 </tbody>
 </table>
-<blockquote>
-<p>O notebook <code>05_reset.ipynb</code> não faz parte do fluxo — serve para <strong>limpar o ambiente</strong> (remover
-tabelas e zerar o Volume) quando for preciso recomeçar.</p>
-</blockquote>
-<h2 id="caracteristica-de-cada-camada">Característica de cada camada</h2>
-<ul>
-<li><strong>Landing</strong> — camada provisória da primeira ingestão. Formato original da origem (CSV). Aqui também
-  são criados os schemas (<code>landing</code>, <code>bronze</code>, <code>silver</code>, <code>gold</code>) e o <strong>Volume</strong> da Landing Zone.</li>
-<li><strong>Bronze</strong> — cópia da landing em <strong>Delta Lake</strong> (ACID, metadados). Mantém o histórico dos dados brutos.</li>
-<li><strong>Silver</strong> — formato Delta. Aplica <strong>regras de qualidade e padronização</strong> (trim, maiúsculo/minúsculo,
-  tipagem), remove duplicados e registros inválidos.</li>
-<li><strong>Gold</strong> — formato Delta. Dados em <strong>modelo dimensional (star schema)</strong>, otimizado para leitura e BI.</li>
-</ul>
-<h2 id="onde-o-ambiente-e-preparado">Onde o ambiente é preparado</h2>
-<p>A criação dos schemas e do Volume acontece <strong>no início do notebook <code>01_extract_supabase_to_landing.ipynb</code></strong>
-(via <code>%sql</code>), antes da extração — por isso o pipeline tem 5 notebooks (sem um notebook separado só de setup).</p>
+<p>O notebook <code>05_reset.ipynb</code> é um utilitário para limpar o ambiente e recomeçar.</p>
+<p>Os schemas (<code>landing</code>, <code>bronze</code>, <code>silver</code>, <code>gold</code>) e o Volume da Landing são criados no início do
+notebook <code>01_extract_supabase_to_landing.ipynb</code>.</p>
 
 
 

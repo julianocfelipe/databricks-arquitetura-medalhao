@@ -76,7 +76,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#trabalho-3-databricks-arquitetura-medalhao" class="md-skip">
+        <a href="#trabalho-3-lakehouse-com-databricks-e-arquitetura-medalhao" class="md-skip">
           Skip to content
         </a>
       
@@ -370,17 +370,6 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#objetivo" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Objetivo
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
   <a href="#pipeline" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -392,10 +381,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#navegacao" class="md-nav__link">
+  <a href="#conteudo" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Navegação
+        Conteúdo
       
     </span>
   </a>
@@ -414,10 +403,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#screenshots" class="md-nav__link">
+  <a href="#referencias" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Screenshots
+        Referências
       
     </span>
   </a>
@@ -712,17 +701,6 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#objetivo" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Objetivo
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
   <a href="#pipeline" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -734,10 +712,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#navegacao" class="md-nav__link">
+  <a href="#conteudo" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Navegação
+        Conteúdo
       
     </span>
   </a>
@@ -756,10 +734,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#screenshots" class="md-nav__link">
+  <a href="#referencias" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Screenshots
+        Referências
       
     </span>
   </a>
@@ -783,55 +761,50 @@
 
 
 
-<h1 id="trabalho-3-databricks-arquitetura-medalhao">Trabalho 3 — Databricks: Arquitetura Medalhão</h1>
-<p>Pipeline de dados completo no <strong>Databricks Free Edition</strong> implementando a <strong>Arquitetura Medalhão</strong>,
-com orquestração via <strong>Jobs &amp; Pipelines</strong>.</p>
-<h2 id="objetivo">Objetivo</h2>
-<p>Construir um pipeline de dados (<strong>Landing → Bronze → Silver → Gold</strong>) utilizando o mesmo dataset da
-Loja Virtual dos trabalhos anteriores, agora em uma solução <strong>PaaS na nuvem</strong>.</p>
+<h1 id="trabalho-3-lakehouse-com-databricks-e-arquitetura-medalhao">Trabalho 3 — Lakehouse com Databricks e Arquitetura Medalhão</h1>
+<p>Pipeline de dados no <strong>Databricks Free Edition</strong> que implementa a <strong>Arquitetura Medalhão</strong>
+(Landing → Bronze → Silver → Gold), extraindo um banco PostgreSQL hospedado no <strong>Supabase</strong> e
+orquestrando as etapas via <strong>Jobs &amp; Pipelines</strong>.</p>
 <h2 id="pipeline">Pipeline</h2>
 <div class="highlight"><pre><span></span><code>Supabase (PostgreSQL)
         │  JDBC
         ▼
-   LANDING           CSV brutos (Volume do Unity Catalog)
-        │
+   LANDING    CSV bruto em Volume do Unity Catalog
         ▼
-     BRONZE          cópia em Delta Lake
-        │
+   BRONZE     cópia em Delta Lake
         ▼
-     SILVER          Delta Lake + Data Quality
-        │
+   SILVER     Delta Lake + Data Quality
         ▼
-      GOLD           Delta Lake + Star Schema
+    GOLD      Star Schema (modelo dimensional)
 </code></pre></div>
-<h2 id="navegacao">Navegação</h2>
+<h2 id="conteudo">Conteúdo</h2>
 <ul>
-<li><strong><a href="arquitetura/visao-geral/">Visão Geral</a></strong> — conceitos da arquitetura e resumo das camadas</li>
-<li><strong><a href="arquitetura/landing/">Landing</a></strong> — extração da origem (JDBC) + setup do Supabase</li>
-<li><strong><a href="arquitetura/bronze/">Bronze</a></strong> — ingestão em Delta Lake</li>
-<li><strong><a href="arquitetura/silver/">Silver</a></strong> — Data Quality e padronização</li>
-<li><strong><a href="arquitetura/gold/">Gold</a></strong> — modelagem dimensional</li>
-<li><strong><a href="modelo-dimensional/">Modelo Dimensional</a></strong> — detalhes do Star Schema</li>
-<li><strong><a href="jobs-pipelines/">Jobs &amp; Pipelines</a></strong> — orquestração sequencial dos notebooks</li>
+<li><a href="arquitetura/visao-geral/">Visão Geral</a></li>
+<li><a href="arquitetura/landing/">Landing</a></li>
+<li><a href="arquitetura/bronze/">Bronze</a></li>
+<li><a href="arquitetura/silver/">Silver</a></li>
+<li><a href="arquitetura/gold/">Gold</a></li>
+<li><a href="modelo-dimensional/">Modelo Dimensional</a></li>
+<li><a href="jobs-pipelines/">Jobs &amp; Pipelines</a></li>
 </ul>
 <h2 id="tecnologias">Tecnologias</h2>
 <ul>
-<li><strong>Databricks Free Edition</strong> — plataforma de processamento (serverless)</li>
-<li><strong>Supabase</strong> — banco PostgreSQL na nuvem (origem)</li>
-<li><strong>Delta Lake</strong> — formato de armazenamento ACID</li>
-<li><strong>Apache Spark (PySpark)</strong> — processamento distribuído</li>
-<li><strong>Jobs &amp; Pipelines</strong> — orquestração sequencial</li>
+<li>Databricks Free Edition (serverless)</li>
+<li>Apache Spark (PySpark)</li>
+<li>Delta Lake</li>
+<li>Unity Catalog (schemas e Volumes)</li>
+<li>PostgreSQL JDBC Driver</li>
+<li>Supabase (PostgreSQL gerenciado)</li>
 </ul>
-<h2 id="screenshots">Screenshots</h2>
-<blockquote>
-<p>Adicione aqui prints do Databricks mostrando:</p>
+<h2 id="referencias">Referências</h2>
 <ul>
-<li>Execução dos notebooks</li>
-<li>DAG do Job (Jobs &amp; Pipelines)</li>
-<li>Tabelas criadas no Catalog Explorer</li>
-<li>Resultados das queries no Gold</li>
+<li><a href="https://docs.databricks.com/">Databricks Documentation</a></li>
+<li><a href="https://spark.apache.org/docs/latest/api/python/index.html">Apache Spark — PySpark</a></li>
+<li><a href="https://docs.delta.io/latest/index.html">Delta Lake</a></li>
+<li><a href="https://docs.databricks.com/aws/en/volumes/">Unity Catalog — Volumes</a></li>
+<li><a href="https://jdbc.postgresql.org/documentation/">PostgreSQL JDBC Driver</a></li>
+<li><a href="https://supabase.com/docs/guides/database/connecting-to-postgres">Supabase — Connecting to Postgres</a></li>
 </ul>
-</blockquote>
 
 
 

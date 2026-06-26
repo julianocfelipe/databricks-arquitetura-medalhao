@@ -623,10 +623,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#dag-do-job" class="md-nav__link">
+  <a href="#dag" class="md-nav__link">
     <span class="md-ellipsis">
       
-        DAG do Job
+        DAG
       
     </span>
   </a>
@@ -634,32 +634,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#como-criar-o-job-no-databricks" class="md-nav__link">
+  <a href="#criacao" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Como criar o Job no Databricks
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#execucao-sequencial" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Execução sequencial
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#evidencias-da-entrega" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Evidências da entrega
+        Criação
       
     </span>
   </a>
@@ -701,10 +679,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#dag-do-job" class="md-nav__link">
+  <a href="#dag" class="md-nav__link">
     <span class="md-ellipsis">
       
-        DAG do Job
+        DAG
       
     </span>
   </a>
@@ -712,32 +690,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#como-criar-o-job-no-databricks" class="md-nav__link">
+  <a href="#criacao" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Como criar o Job no Databricks
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#execucao-sequencial" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Execução sequencial
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#evidencias-da-entrega" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Evidências da entrega
+        Criação
       
     </span>
   </a>
@@ -762,21 +718,15 @@
 
 
 <h1 id="jobs-pipelines">Jobs &amp; Pipelines</h1>
-<p>O enunciado exige que <strong>todas as execuções dos notebooks estejam encadeadas através de um Job
-(Jobs &amp; Pipelines)</strong>, executado <strong>sequencialmente</strong>. Esta página documenta o Job criado no
-Databricks.</p>
-<h2 id="dag-do-job">DAG do Job</h2>
-<p>O Job executa as 4 tasks do pipeline em sequência — cada uma depende da anterior:</p>
-<div class="highlight"><pre><span></span><code>[01_extract_supabase_to_landing]
-            │
+<p>As etapas do pipeline são encadeadas em um <strong>Job</strong> do Databricks, executado sequencialmente.</p>
+<h2 id="dag">DAG</h2>
+<div class="highlight"><pre><span></span><code>01_extract_supabase_to_landing
             ▼
-[02_landing_to_bronze]
-            │
+02_landing_to_bronze
             ▼
-[03_bronze_to_silver]
-            │
+03_bronze_to_silver
             ▼
-[04_silver_to_gold]
+04_silver_to_gold
 </code></pre></div>
 <table>
 <thead>
@@ -814,44 +764,14 @@ Databricks.</p>
 </tr>
 </tbody>
 </table>
-<blockquote>
-<p>O <code>05_reset.ipynb</code> <strong>não entra no Job</strong> — é executado manualmente apenas quando se quer limpar o
-ambiente, para não apagar os dados a cada execução do pipeline.</p>
-</blockquote>
-<h2 id="como-criar-o-job-no-databricks">Como criar o Job no Databricks</h2>
+<h2 id="criacao">Criação</h2>
 <ol>
-<li>No menu lateral, vá em <strong>Jobs &amp; Pipelines → Create job</strong>.</li>
-<li>Dê um nome ao Job, ex.: <code>pipeline_medalhao_loja_virtual</code>.</li>
-<li><strong>Task 1</strong> — <code>landing</code>:<ul>
-<li><strong>Type:</strong> Notebook</li>
-<li><strong>Source:</strong> Workspace → selecione <code>01_extract_supabase_to_landing</code></li>
-<li><strong>Compute:</strong> Serverless (padrão do Free Edition)</li>
-</ul>
-</li>
-<li><strong>Add task</strong> — <code>bronze</code>:<ul>
-<li>Notebook <code>02_landing_to_bronze</code></li>
-<li><strong>Depends on:</strong> <code>landing</code></li>
-</ul>
-</li>
-<li>Repita para <code>silver</code> (03) e <code>gold</code> (04), sempre definindo <strong>Depends on</strong> na task anterior, de
-   modo que a execução seja <strong>sequencial</strong>.</li>
-<li><strong>Run now</strong> para executar o pipeline completo de ponta a ponta.</li>
+<li><strong>Jobs &amp; Pipelines → Create job</strong>.</li>
+<li>Adicione uma task <strong>Notebook</strong> para cada etapa, apontando para o notebook correspondente.</li>
+<li>Em cada task (a partir da segunda), defina <strong>Depends on</strong> apontando para a task anterior.</li>
+<li><strong>Run now</strong> para executar o pipeline de ponta a ponta.</li>
 </ol>
-<div class="admonition tip">
-<p class="admonition-title">Free Edition é serverless</p>
-<p>Não há cluster clássico para configurar — as tasks usam <strong>compute serverless</strong>. O driver do
-PostgreSQL (<code>org.postgresql.Driver</code>) já vem no runtime, então não há biblioteca a instalar.</p>
-</div>
-<h2 id="execucao-sequencial">Execução sequencial</h2>
-<p>Com as dependências configuradas, o Databricks garante a ordem <code>01 → 02 → 03 → 04</code>. Se uma task
-falhar, as seguintes <strong>não</strong> são executadas, preservando a integridade do pipeline Medalhão.</p>
-<h2 id="evidencias-da-entrega">Evidências da entrega</h2>
-<p>Anexe ao trabalho os prints do Databricks mostrando:</p>
-<ul>
-<li>A <strong>lista de tasks</strong> do Job com as dependências (DAG)</li>
-<li>Uma <strong>execução concluída com sucesso</strong> (todas as tasks verdes)</li>
-<li>As <strong>tabelas criadas</strong> nos schemas <code>bronze</code>, <code>silver</code> e <code>gold</code> (Catalog Explorer)</li>
-</ul>
+<p>O <code>05_reset.ipynb</code> não faz parte do Job — é executado manualmente para limpar o ambiente.</p>
 
 
 

@@ -78,7 +78,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#camada-silver" class="md-skip">
+        <a href="#silver" class="md-skip">
           Skip to content
         </a>
       
@@ -540,71 +540,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#regras-de-data-quality-aplicadas" class="md-nav__link">
+  <a href="#regras" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Regras de Data Quality aplicadas
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#exemplos-por-tabela" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Exemplos por tabela
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Exemplos por tabela">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#clientes" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Clientes
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#produtos" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Produtos
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#pedidos" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Pedidos
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#resultado" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Resultado
+        Regras
       
     </span>
   </a>
@@ -736,71 +675,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#regras-de-data-quality-aplicadas" class="md-nav__link">
+  <a href="#regras" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Regras de Data Quality aplicadas
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#exemplos-por-tabela" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Exemplos por tabela
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Exemplos por tabela">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#clientes" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Clientes
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#produtos" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Produtos
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#pedidos" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Pedidos
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#resultado" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Resultado
+        Regras
       
     </span>
   </a>
@@ -824,53 +702,20 @@
 
 
 
-<h1 id="camada-silver">Camada Silver</h1>
+<h1 id="silver">Silver</h1>
 <blockquote>
 <p>Notebook: <code>03_bronze_to_silver.ipynb</code></p>
 </blockquote>
-<p>A <strong>Silver</strong> lê os dados do Bronze, aplica <strong>regras de Data Quality</strong> e padronização, e grava em
-formato <strong>Delta Lake</strong> no schema <code>silver</code>.</p>
-<h2 id="regras-de-data-quality-aplicadas">Regras de Data Quality aplicadas</h2>
-<table>
-<thead>
-<tr>
-<th>Regra</th>
-<th>Descrição</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>Tipagem</td>
-<td>Converte os campos para os tipos corretos (<code>cast</code> para int, double, date, string)</td>
-</tr>
-<tr>
-<td>Strings</td>
-<td><code>trim</code> + normalização (<code>initcap</code> para nomes/cidade, <code>lower</code> para email/status)</td>
-</tr>
-<tr>
-<td>Deduplicação</td>
-<td>Remove registros com chave primária duplicada (<code>dropDuplicates(["id"])</code>)</td>
-</tr>
-<tr>
-<td>Nulos</td>
-<td>Filtra registros com campos obrigatórios nulos</td>
-</tr>
-<tr>
-<td>Validação</td>
-<td>Remove valores inválidos (<code>preco &gt; 0</code>, <code>quantidade &gt; 0</code>, <code>valor_total &gt; 0</code>)</td>
-</tr>
-<tr>
-<td>Normalização</td>
-<td><code>estoque</code> negativo é ajustado para <code>0</code></td>
-</tr>
-<tr>
-<td>Metadados</td>
-<td>Adiciona <code>_silver_processed_at</code></td>
-</tr>
-</tbody>
-</table>
-<h2 id="exemplos-por-tabela">Exemplos por tabela</h2>
-<h3 id="clientes">Clientes</h3>
+<p>Aplica <strong>Data Quality</strong> sobre o Bronze e grava em Delta Lake no schema <code>silver</code>.</p>
+<h2 id="regras">Regras</h2>
+<ul>
+<li><strong>Tipagem</strong> — <code>cast</code> para os tipos corretos (int, double, date, string)</li>
+<li><strong>Padronização</strong> — <code>trim</code>, <code>initcap</code> (nomes/cidade) e <code>lower</code> (email/status)</li>
+<li><strong>Deduplicação</strong> — <code>dropDuplicates(["id"])</code></li>
+<li><strong>Nulos</strong> — remove registros com campos obrigatórios nulos</li>
+<li><strong>Validação</strong> — <code>preco &gt; 0</code>, <code>quantidade &gt; 0</code>, <code>valor_total &gt; 0</code>; <code>estoque</code> negativo vira <code>0</code></li>
+<li><strong>Auditoria</strong> — coluna <code>_silver_processed_at</code></li>
+</ul>
 <div class="highlight"><pre><span></span><code><span class="n">clientes</span> <span class="o">=</span> <span class="p">(</span>
     <span class="n">spark</span><span class="o">.</span><span class="n">table</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">BRONZE_SCHEMA</span><span class="si">}</span><span class="s2">.clientes&quot;</span><span class="p">)</span>
         <span class="o">.</span><span class="n">select</span><span class="p">(</span>
@@ -886,21 +731,7 @@ formato <strong>Delta Lake</strong> no schema <code>silver</code>.</p>
         <span class="o">.</span><span class="n">withColumn</span><span class="p">(</span><span class="s2">&quot;_silver_processed_at&quot;</span><span class="p">,</span> <span class="n">current_timestamp</span><span class="p">())</span>
 <span class="p">)</span>
 </code></pre></div>
-<h3 id="produtos">Produtos</h3>
-<ul>
-<li><code>preco</code> convertido para <code>double</code> e filtrado (<code>preco &gt; 0</code>)</li>
-<li><code>estoque</code> convertido para <code>int</code>; valores negativos viram <code>0</code></li>
-<li><code>nome</code> e <code>categoria</code> padronizados com <code>trim</code> + <code>initcap</code></li>
-</ul>
-<h3 id="pedidos">Pedidos</h3>
-<ul>
-<li><code>quantidade</code> (int) e <code>valor_total</code> (double) validados (<code>&gt; 0</code>)</li>
-<li><code>data_pedido</code> convertida para <code>date</code></li>
-<li><code>status</code> normalizado com <code>lower</code> + <code>trim</code></li>
-</ul>
-<h2 id="resultado">Resultado</h2>
-<p>Tabelas <code>silver.clientes</code>, <code>silver.produtos</code> e <code>silver.pedidos</code> — dados limpos, validados e
-padronizados, prontos para alimentar o modelo dimensional na camada <strong>Gold</strong>.</p>
+<p>Resultado: <code>silver.clientes</code>, <code>silver.produtos</code> e <code>silver.pedidos</code>.</p>
 
 
 

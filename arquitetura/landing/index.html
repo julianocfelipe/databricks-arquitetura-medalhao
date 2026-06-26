@@ -774,22 +774,34 @@
 Os dados são gravados no <strong>formato original da origem</strong> — neste trabalho, <strong>CSV</strong> (origem relacional).</p>
 <h2 id="o-que-a-camada-faz">O que a camada faz</h2>
 <ul>
-<li>Conecta no banco de origem (<strong>Supabase / PostgreSQL</strong>) via <strong>JDBC</strong></li>
+<li>Conecta no banco de origem (<strong>Supabase / PostgreSQL</strong>) via <strong>psycopg2</strong></li>
 <li>Extrai <strong>todas as tabelas</strong> (<code>clientes</code>, <code>produtos</code>, <code>pedidos</code>)</li>
-<li>Grava cada tabela como <strong>CSV</strong> em <code>dbfs:/FileStore/landing/dados/{tabela}/</code></li>
+<li>Grava cada tabela como <strong>CSV</strong> no Volume <code>/Volumes/&lt;catalog&gt;/landing/dados/{tabela}/</code></li>
 </ul>
-<div class="highlight"><pre><span></span><code><span class="n">df</span> <span class="o">=</span> <span class="n">spark</span><span class="o">.</span><span class="n">read</span><span class="o">.</span><span class="n">jdbc</span><span class="p">(</span><span class="n">url</span><span class="o">=</span><span class="n">JDBC_URL</span><span class="p">,</span> <span class="n">table</span><span class="o">=</span><span class="n">tabela</span><span class="p">,</span> <span class="n">properties</span><span class="o">=</span><span class="n">connection_properties</span><span class="p">)</span>
+<div class="highlight"><pre><span></span><code><span class="o">%</span><span class="n">pip</span> <span class="n">install</span> <span class="n">psycopg2</span><span class="o">-</span><span class="n">binary</span>
+<span class="n">dbutils</span><span class="o">.</span><span class="n">library</span><span class="o">.</span><span class="n">restartPython</span><span class="p">()</span>
 
-<span class="p">(</span><span class="n">df</span><span class="o">.</span><span class="n">coalesce</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
-   <span class="o">.</span><span class="n">write</span><span class="o">.</span><span class="n">mode</span><span class="p">(</span><span class="s2">&quot;overwrite&quot;</span><span class="p">)</span>
-   <span class="o">.</span><span class="n">option</span><span class="p">(</span><span class="s2">&quot;header&quot;</span><span class="p">,</span> <span class="s2">&quot;true&quot;</span><span class="p">)</span>
-   <span class="o">.</span><span class="n">csv</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">LANDING_PATH</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">tabela</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">))</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">psycopg2</span><span class="o">,</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span><span class="o">,</span><span class="w"> </span><span class="nn">os</span>
+
+<span class="n">conn</span> <span class="o">=</span> <span class="n">psycopg2</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">host</span><span class="o">=</span><span class="n">SUPABASE_HOST</span><span class="p">,</span> <span class="n">port</span><span class="o">=</span><span class="n">SUPABASE_PORT</span><span class="p">,</span> <span class="n">dbname</span><span class="o">=</span><span class="n">SUPABASE_DB</span><span class="p">,</span>
+                        <span class="n">user</span><span class="o">=</span><span class="n">SUPABASE_USER</span><span class="p">,</span> <span class="n">password</span><span class="o">=</span><span class="n">SUPABASE_PASSWORD</span><span class="p">,</span> <span class="n">sslmode</span><span class="o">=</span><span class="s2">&quot;require&quot;</span><span class="p">)</span>
+
+<span class="n">pdf</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_sql</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;SELECT * FROM </span><span class="si">{</span><span class="n">tabela</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">conn</span><span class="p">)</span>
+<span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">LANDING_PATH</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">tabela</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">pdf</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">LANDING_PATH</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">tabela</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">tabela</span><span class="si">}</span><span class="s2">.csv&quot;</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 </code></pre></div>
+<div class="admonition info">
+<p class="admonition-title">Databricks Free Edition é serverless</p>
+<p>O Free Edition <strong>não tem cluster clássico</strong> nem aba <em>Libraries</em> — não dá para instalar driver
+<strong>Maven</strong>. Por isso a extração usa <strong>psycopg2</strong> (driver Python), instalado no próprio notebook
+com <code>%pip install psycopg2-binary</code>. A Landing Zone também não usa DBFS (<code>/FileStore</code>, restrito
+no serverless), e sim um <strong>Volume</strong> do Unity Catalog: <code>/Volumes/&lt;catalog&gt;/landing/dados</code>.</p>
+</div>
 <div class="admonition warning">
-<p class="admonition-title">Pré-requisito obrigatório no cluster</p>
-<p>Instale a biblioteca <strong>Maven</strong> do driver PostgreSQL no cluster antes de rodar o notebook 002:
-<strong>Compute → seu cluster → Libraries → Install New → Maven</strong>, coordenada:
-<code>org.postgresql:postgresql:42.7.3</code>. Aguarde instalar e reinicie o cluster.</p>
+<p class="admonition-title">Conexão IPv6 vs IPv4 (Supabase)</p>
+<p>A conexão <strong>direta</strong> (<code>db.xxxx.supabase.co</code>) costuma ser apenas IPv6 e pode dar timeout a partir
+do Databricks serverless. Se isso acontecer, use os dados do <strong>Session Pooler</strong> (IPv4) do Supabase:
+host <code>aws-0-&lt;regiao&gt;.pooler.supabase.com</code> e usuário <code>postgres.&lt;project-ref&gt;</code>.</p>
 </div>
 <h2 id="configuracao-da-conexao">Configuração da conexão</h2>
 <p>No início do notebook <code>002_Landing_Extracao.py</code>, preencha as credenciais do <strong>seu</strong> projeto Supabase
@@ -867,8 +879,8 @@ Os dados são gravados no <strong>formato original da origem</strong> — neste 
 <span class="k">UNION</span><span class="w"> </span><span class="k">ALL</span><span class="w"> </span><span class="k">SELECT</span><span class="w"> </span><span class="s1">&#39;pedidos&#39;</span><span class="p">,</span><span class="w">  </span><span class="k">COUNT</span><span class="p">(</span><span class="o">*</span><span class="p">)</span><span class="w"> </span><span class="k">FROM</span><span class="w"> </span><span class="n">pedidos</span><span class="p">;</span>
 </code></pre></div>
 <h2 id="resultado">Resultado</h2>
-<p>Ao final, os dados brutos ficam disponíveis em <code>dbfs:/FileStore/landing/dados/</code>, prontos para
-serem ingeridos pela camada <strong>Bronze</strong>.</p>
+<p>Ao final, os dados brutos ficam disponíveis no Volume <code>/Volumes/&lt;catalog&gt;/landing/dados/</code>, prontos
+para serem ingeridos pela camada <strong>Bronze</strong>.</p>
 
 
 

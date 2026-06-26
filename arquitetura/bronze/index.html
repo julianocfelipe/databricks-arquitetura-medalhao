@@ -774,7 +774,7 @@
 dados brutos</strong> (ainda não processados), com suporte a ACID e <em>time travel</em>.</p>
 <h2 id="o-que-a-camada-faz">O que a camada faz</h2>
 <ul>
-<li>Lê os arquivos <strong>CSV</strong> da Landing Zone (<code>/FileStore/landing/dados/{tabela}</code>)</li>
+<li>Lê os arquivos <strong>CSV</strong> da Landing Zone (<code>/Volumes/&lt;catalog&gt;/landing/dados/{tabela}</code>)</li>
 <li>Adiciona <strong>metadados de auditoria</strong></li>
 <li>Grava como <strong>tabela Delta gerenciada</strong> no schema <code>bronze</code></li>
 </ul>

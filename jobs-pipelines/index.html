@@ -88,7 +88,9 @@
     
       
 
-<header class="md-header" data-md-component="header">
+  
+
+<header class="md-header md-header--shadow md-header--lifted" data-md-component="header">
   <nav class="md-header__inner md-grid" aria-label="Header">
     <a href=".." title="Trabalho 3 — Databricks Arquitetura Medalhão" class="md-header__button md-logo" aria-label="Trabalho 3 — Databricks Arquitetura Medalhão" data-md-component="logo">
       
@@ -177,14 +179,8 @@
     
   </nav>
   
-</header>
     
-    <div class="md-container" data-md-component="container">
       
-      
-        
-          
-            
 <nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
   <div class="md-grid">
     <ul class="md-tabs__list">
@@ -271,7 +267,13 @@
     </ul>
   </div>
 </nav>
-          
+    
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
         
       
       <main class="md-main" data-md-component="main">
@@ -764,20 +766,17 @@
 (Jobs &amp; Pipelines)</strong>, executado <strong>sequencialmente</strong>. Esta página documenta o Job criado no
 Databricks.</p>
 <h2 id="dag-do-job">DAG do Job</h2>
-<p>O Job executa as 5 tasks em sequência — cada uma depende da anterior:</p>
-<div class="highlight"><pre><span></span><code>[001_Preparando_Ambiente]
+<p>O Job executa as 4 tasks do pipeline em sequência — cada uma depende da anterior:</p>
+<div class="highlight"><pre><span></span><code>[01_extract_supabase_to_landing]
             │
             ▼
-[002_Landing_Extracao]
+[02_landing_to_bronze]
             │
             ▼
-[003_Bronze_Ingestao]
+[03_bronze_to_silver]
             │
             ▼
-[004_Silver_Data_Quality]
-            │
-            ▼
-[005_Gold_Modelagem_Dimensional]
+[04_silver_to_gold]
 </code></pre></div>
 <table>
 <thead>
@@ -791,65 +790,61 @@ Databricks.</p>
 <tbody>
 <tr>
 <td>1</td>
-<td><code>preparar_ambiente</code></td>
-<td><code>001_Preparando_Ambiente</code></td>
+<td><code>landing</code></td>
+<td><code>01_extract_supabase_to_landing</code></td>
 <td>—</td>
 </tr>
 <tr>
 <td>2</td>
+<td><code>bronze</code></td>
+<td><code>02_landing_to_bronze</code></td>
 <td><code>landing</code></td>
-<td><code>002_Landing_Extracao</code></td>
-<td><code>preparar_ambiente</code></td>
 </tr>
 <tr>
 <td>3</td>
+<td><code>silver</code></td>
+<td><code>03_bronze_to_silver</code></td>
 <td><code>bronze</code></td>
-<td><code>003_Bronze_Ingestao</code></td>
-<td><code>landing</code></td>
 </tr>
 <tr>
 <td>4</td>
-<td><code>silver</code></td>
-<td><code>004_Silver_Data_Quality</code></td>
-<td><code>bronze</code></td>
-</tr>
-<tr>
-<td>5</td>
 <td><code>gold</code></td>
-<td><code>005_Gold_Modelagem_Dimensional</code></td>
+<td><code>04_silver_to_gold</code></td>
 <td><code>silver</code></td>
 </tr>
 </tbody>
 </table>
+<blockquote>
+<p>O <code>05_reset.ipynb</code> <strong>não entra no Job</strong> — é executado manualmente apenas quando se quer limpar o
+ambiente, para não apagar os dados a cada execução do pipeline.</p>
+</blockquote>
 <h2 id="como-criar-o-job-no-databricks">Como criar o Job no Databricks</h2>
 <ol>
 <li>No menu lateral, vá em <strong>Jobs &amp; Pipelines → Create job</strong>.</li>
 <li>Dê um nome ao Job, ex.: <code>pipeline_medalhao_loja_virtual</code>.</li>
-<li><strong>Task 1</strong> — <code>preparar_ambiente</code>:<ul>
+<li><strong>Task 1</strong> — <code>landing</code>:<ul>
 <li><strong>Type:</strong> Notebook</li>
-<li><strong>Source:</strong> Workspace → selecione <code>001_Preparando_Ambiente</code></li>
+<li><strong>Source:</strong> Workspace → selecione <code>01_extract_supabase_to_landing</code></li>
 <li><strong>Compute:</strong> Serverless (padrão do Free Edition)</li>
 </ul>
 </li>
-<li><strong>Add task</strong> — <code>landing</code>:<ul>
-<li>Notebook <code>002_Landing_Extracao</code></li>
-<li><strong>Depends on:</strong> <code>preparar_ambiente</code></li>
+<li><strong>Add task</strong> — <code>bronze</code>:<ul>
+<li>Notebook <code>02_landing_to_bronze</code></li>
+<li><strong>Depends on:</strong> <code>landing</code></li>
 </ul>
 </li>
-<li>Repita para <code>bronze</code> (002→003), <code>silver</code> (003→004) e <code>gold</code> (004→005), sempre definindo
-   <strong>Depends on</strong> na task anterior, de modo que a execução seja <strong>sequencial</strong>.</li>
+<li>Repita para <code>silver</code> (03) e <code>gold</code> (04), sempre definindo <strong>Depends on</strong> na task anterior, de
+   modo que a execução seja <strong>sequencial</strong>.</li>
 <li><strong>Run now</strong> para executar o pipeline completo de ponta a ponta.</li>
 </ol>
 <div class="admonition tip">
 <p class="admonition-title">Free Edition é serverless</p>
 <p>Não há cluster clássico para configurar — as tasks usam <strong>compute serverless</strong>. O driver do
-PostgreSQL é instalado dentro do notebook 002 via <code>%pip install psycopg2-binary</code>, então não há
-biblioteca Maven a instalar no cluster.</p>
+PostgreSQL (<code>org.postgresql.Driver</code>) já vem no runtime, então não há biblioteca a instalar.</p>
 </div>
 <h2 id="execucao-sequencial">Execução sequencial</h2>
-<p>Com as dependências configuradas, o Databricks garante a ordem
-<code>001 → 002 → 003 → 004 → 005</code>. Se uma task falhar, as seguintes <strong>não</strong> são executadas,
-preservando a integridade do pipeline Medalhão.</p>
+<p>Com as dependências configuradas, o Databricks garante a ordem <code>01 → 02 → 03 → 04</code>. Se uma task
+falhar, as seguintes <strong>não</strong> são executadas, preservando a integridade do pipeline Medalhão.</p>
 <h2 id="evidencias-da-entrega">Evidências da entrega</h2>
 <p>Anexe ao trabalho os prints do Databricks mostrando:</p>
 <ul>
@@ -906,7 +901,7 @@ preservando a integridade do pipeline Medalhão.</p>
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.tabs", "navigation.sections", "content.code.copy"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.tabs", "navigation.tabs.sticky", "navigation.sections", "content.code.copy"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
     
     
       <script src="../assets/javascripts/bundle.79ae519e.min.js"></script>

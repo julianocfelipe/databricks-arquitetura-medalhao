@@ -90,7 +90,9 @@
     
       
 
-<header class="md-header" data-md-component="header">
+  
+
+<header class="md-header md-header--shadow md-header--lifted" data-md-component="header">
   <nav class="md-header__inner md-grid" aria-label="Header">
     <a href="../.." title="Trabalho 3 — Databricks Arquitetura Medalhão" class="md-header__button md-logo" aria-label="Trabalho 3 — Databricks Arquitetura Medalhão" data-md-component="logo">
       
@@ -179,14 +181,8 @@
     
   </nav>
   
-</header>
     
-    <div class="md-container" data-md-component="container">
       
-      
-        
-          
-            
 <nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
   <div class="md-grid">
     <ul class="md-tabs__list">
@@ -273,7 +269,13 @@
     </ul>
   </div>
 </nav>
-          
+    
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
         
       
       <main class="md-main" data-md-component="main">
@@ -768,40 +770,36 @@
 
 <h1 id="camada-bronze">Camada Bronze</h1>
 <blockquote>
-<p>Notebook: <code>003_Bronze_Ingestao.ipynb</code></p>
+<p>Notebook: <code>02_landing_to_bronze.ipynb</code></p>
 </blockquote>
-<p>A <strong>Bronze</strong> é a cópia da camada Landing, agora em <strong>Delta Lake</strong>. Mantém o <strong>histórico completo dos
-dados brutos</strong> (ainda não processados), com suporte a ACID e <em>time travel</em>.</p>
+<p>A <strong>Bronze</strong> é a cópia das tabelas da camada Landing, agora em <strong>Delta Lake</strong> (ACID, metadados,
+time travel). Mantém os dados brutos, sem transformação de valores.</p>
 <h2 id="o-que-a-camada-faz">O que a camada faz</h2>
 <ul>
-<li>Lê os arquivos <strong>CSV</strong> da Landing Zone (<code>/Volumes/&lt;catalog&gt;/landing/dados/{tabela}</code>)</li>
-<li>Adiciona <strong>metadados de auditoria</strong></li>
-<li>Grava como <strong>tabela Delta gerenciada</strong> no schema <code>bronze</code></li>
+<li>Lê as tabelas do schema <code>landing</code> (<code>workspace.landing.{tabela}</code>)</li>
+<li>Grava cada uma como <strong>tabela Delta gerenciada</strong> no schema <code>bronze</code></li>
 </ul>
-<div class="highlight"><pre><span></span><code><span class="n">df_bronze</span> <span class="o">=</span> <span class="p">(</span>
-    <span class="n">df_landing</span>
-    <span class="o">.</span><span class="n">withColumn</span><span class="p">(</span><span class="s2">&quot;nome_arquivo&quot;</span><span class="p">,</span>       <span class="n">F</span><span class="o">.</span><span class="n">input_file_name</span><span class="p">())</span>
-    <span class="o">.</span><span class="n">withColumn</span><span class="p">(</span><span class="s2">&quot;data_processamento&quot;</span><span class="p">,</span> <span class="n">F</span><span class="o">.</span><span class="n">current_timestamp</span><span class="p">())</span>
-<span class="p">)</span>
+<div class="highlight"><pre><span></span><code><span class="k">for</span> <span class="n">table</span> <span class="ow">in</span> <span class="n">TABLES</span><span class="p">:</span>
+    <span class="n">df</span> <span class="o">=</span> <span class="n">spark</span><span class="o">.</span><span class="n">table</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">LANDING_SCHEMA</span><span class="si">}</span><span class="s2">.</span><span class="si">{</span><span class="n">table</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 
-<span class="p">(</span><span class="n">df_bronze</span><span class="o">.</span><span class="n">write</span>
-   <span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="s2">&quot;delta&quot;</span><span class="p">)</span>
-   <span class="o">.</span><span class="n">mode</span><span class="p">(</span><span class="s2">&quot;overwrite&quot;</span><span class="p">)</span>
-   <span class="o">.</span><span class="n">saveAsTable</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;bronze.</span><span class="si">{</span><span class="n">tabela</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">))</span>
+    <span class="p">(</span>
+        <span class="n">df</span><span class="o">.</span><span class="n">write</span>
+            <span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="s2">&quot;delta&quot;</span><span class="p">)</span>
+            <span class="o">.</span><span class="n">mode</span><span class="p">(</span><span class="s2">&quot;overwrite&quot;</span><span class="p">)</span>
+            <span class="o">.</span><span class="n">saveAsTable</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">BRONZE_SCHEMA</span><span class="si">}</span><span class="s2">.</span><span class="si">{</span><span class="n">table</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="p">)</span>
 </code></pre></div>
 <h2 id="caracteristicas">Características</h2>
 <ul>
 <li><strong>Formato Delta</strong> (ACID, metadados, time travel)</li>
-<li><strong>Dados imutáveis</strong> (apenas leitura) — cópia fiel da landing, sem transformação de valores</li>
-<li><strong>Metadados adicionados</strong>: <code>nome_arquivo</code> (origem) e <code>data_processamento</code> (carimbo de tempo)</li>
-<li>Mantém o histórico completo dos dados brutos</li>
+<li>Cópia fiel da landing, sem transformação de valores</li>
+<li>Já carrega os metadados de auditoria adicionados na Landing (<code>_source_table</code>, <code>_extracted_at</code>)</li>
 </ul>
 <h2 id="validacoes-do-notebook">Validações do notebook</h2>
-<p>O notebook também demonstra recursos do Delta Lake:</p>
 <ul>
-<li><code>DESCRIBE DETAIL bronze.{tabela}</code> — formato, nº de arquivos, tamanho</li>
-<li><code>DESCRIBE HISTORY bronze.{tabela}</code> — histórico de versões (<strong>time travel</strong>)</li>
-<li><code>SHOW TABLES IN bronze</code> + contagem de registros por tabela</li>
+<li><code>SHOW TABLES IN workspace.bronze</code></li>
+<li><code>spark.table("workspace.bronze.clientes").show()</code></li>
+<li><code>DESCRIBE DETAIL workspace.bronze.clientes</code></li>
 </ul>
 <h2 id="resultado">Resultado</h2>
 <p>Tabelas Delta <code>bronze.clientes</code>, <code>bronze.produtos</code> e <code>bronze.pedidos</code>, prontas para receber as
@@ -855,7 +853,7 @@ regras de <strong>Data Quality</strong> na camada Silver.</p>
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.tabs", "navigation.sections", "content.code.copy"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.tabs", "navigation.tabs.sticky", "navigation.sections", "content.code.copy"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
     
     
       <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>

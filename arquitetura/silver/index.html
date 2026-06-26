@@ -90,7 +90,9 @@
     
       
 
-<header class="md-header" data-md-component="header">
+  
+
+<header class="md-header md-header--shadow md-header--lifted" data-md-component="header">
   <nav class="md-header__inner md-grid" aria-label="Header">
     <a href="../.." title="Trabalho 3 — Databricks Arquitetura Medalhão" class="md-header__button md-logo" aria-label="Trabalho 3 — Databricks Arquitetura Medalhão" data-md-component="logo">
       
@@ -179,14 +181,8 @@
     
   </nav>
   
-</header>
     
-    <div class="md-container" data-md-component="container">
       
-      
-        
-          
-            
 <nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
   <div class="md-grid">
     <ul class="md-tabs__list">
@@ -273,7 +269,13 @@
     </ul>
   </div>
 </nav>
-          
+    
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
         
       
       <main class="md-main" data-md-component="main">
@@ -824,11 +826,10 @@
 
 <h1 id="camada-silver">Camada Silver</h1>
 <blockquote>
-<p>Notebook: <code>004_Silver_Data_Quality.ipynb</code></p>
+<p>Notebook: <code>03_bronze_to_silver.ipynb</code></p>
 </blockquote>
 <p>A <strong>Silver</strong> lê os dados do Bronze, aplica <strong>regras de Data Quality</strong> e padronização, e grava em
-formato <strong>Delta Lake</strong> no schema <code>silver</code>. É a camada usada por engenheiros de dados e de ML/IA
-para consultas <em>ad hoc</em>.</p>
+formato <strong>Delta Lake</strong> no schema <code>silver</code>.</p>
 <h2 id="regras-de-data-quality-aplicadas">Regras de Data Quality aplicadas</h2>
 <table>
 <thead>
@@ -839,70 +840,64 @@ para consultas <em>ad hoc</em>.</p>
 </thead>
 <tbody>
 <tr>
+<td>Tipagem</td>
+<td>Converte os campos para os tipos corretos (<code>cast</code> para int, double, date, string)</td>
+</tr>
+<tr>
+<td>Strings</td>
+<td><code>trim</code> + normalização (<code>initcap</code> para nomes/cidade, <code>lower</code> para email/status)</td>
+</tr>
+<tr>
 <td>Deduplicação</td>
-<td>Remove registros com chave primária duplicada (<code>dropDuplicates</code>)</td>
+<td>Remove registros com chave primária duplicada (<code>dropDuplicates(["id"])</code>)</td>
 </tr>
 <tr>
 <td>Nulos</td>
 <td>Filtra registros com campos obrigatórios nulos</td>
 </tr>
 <tr>
-<td>Tipos</td>
-<td>Garante tipos corretos (data, decimal, inteiro)</td>
-</tr>
-<tr>
-<td>Strings</td>
-<td><code>trim</code> e normalização de capitalização (<code>initcap</code> / <code>lower</code>)</td>
-</tr>
-<tr>
 <td>Validação</td>
-<td>Remove valores inválidos (preço ≤ 0, quantidade ≤ 0, etc.)</td>
+<td>Remove valores inválidos (<code>preco &gt; 0</code>, <code>quantidade &gt; 0</code>, <code>valor_total &gt; 0</code>)</td>
 </tr>
 <tr>
-<td>Renomeação</td>
-<td>Colunas em <code>snake_case</code> sem abreviações (ex.: <code>id</code> → <code>id_cliente</code>)</td>
+<td>Normalização</td>
+<td><code>estoque</code> negativo é ajustado para <code>0</code></td>
 </tr>
 <tr>
 <td>Metadados</td>
-<td>Atualiza <code>data_processamento</code> e descarta <code>nome_arquivo</code> do bronze</td>
+<td>Adiciona <code>_silver_processed_at</code></td>
 </tr>
 </tbody>
 </table>
 <h2 id="exemplos-por-tabela">Exemplos por tabela</h2>
 <h3 id="clientes">Clientes</h3>
-<ul>
-<li>Dedup por <code>id</code>; remove nulos em <code>id</code>, <code>nome</code>, <code>email</code></li>
-<li><code>nome</code> → <code>initcap(trim(...))</code>, <code>email</code> → <code>lower(trim(...))</code></li>
-<li><code>cidade</code> nula vira <code>"Nao Informado"</code></li>
-<li>Renomeia para <code>id_cliente</code>, <code>nome_cliente</code>, <code>email_cliente</code>, <code>cidade_cliente</code></li>
-</ul>
+<div class="highlight"><pre><span></span><code><span class="n">clientes</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="n">spark</span><span class="o">.</span><span class="n">table</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">BRONZE_SCHEMA</span><span class="si">}</span><span class="s2">.clientes&quot;</span><span class="p">)</span>
+        <span class="o">.</span><span class="n">select</span><span class="p">(</span>
+            <span class="n">col</span><span class="p">(</span><span class="s2">&quot;id&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">cast</span><span class="p">(</span><span class="s2">&quot;string&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">alias</span><span class="p">(</span><span class="s2">&quot;id&quot;</span><span class="p">),</span>
+            <span class="n">trim</span><span class="p">(</span><span class="n">initcap</span><span class="p">(</span><span class="n">col</span><span class="p">(</span><span class="s2">&quot;nome&quot;</span><span class="p">)))</span><span class="o">.</span><span class="n">alias</span><span class="p">(</span><span class="s2">&quot;nome&quot;</span><span class="p">),</span>
+            <span class="n">trim</span><span class="p">(</span><span class="n">lower</span><span class="p">(</span><span class="n">col</span><span class="p">(</span><span class="s2">&quot;email&quot;</span><span class="p">)))</span><span class="o">.</span><span class="n">alias</span><span class="p">(</span><span class="s2">&quot;email&quot;</span><span class="p">),</span>
+            <span class="n">trim</span><span class="p">(</span><span class="n">initcap</span><span class="p">(</span><span class="n">col</span><span class="p">(</span><span class="s2">&quot;cidade&quot;</span><span class="p">)))</span><span class="o">.</span><span class="n">alias</span><span class="p">(</span><span class="s2">&quot;cidade&quot;</span><span class="p">)</span>
+        <span class="p">)</span>
+        <span class="o">.</span><span class="n">dropDuplicates</span><span class="p">([</span><span class="s2">&quot;id&quot;</span><span class="p">])</span>
+        <span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="s2">&quot;id IS NOT NULL&quot;</span><span class="p">)</span>
+        <span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="s2">&quot;nome IS NOT NULL&quot;</span><span class="p">)</span>
+        <span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="s2">&quot;email IS NOT NULL&quot;</span><span class="p">)</span>
+        <span class="o">.</span><span class="n">withColumn</span><span class="p">(</span><span class="s2">&quot;_silver_processed_at&quot;</span><span class="p">,</span> <span class="n">current_timestamp</span><span class="p">())</span>
+<span class="p">)</span>
+</code></pre></div>
 <h3 id="produtos">Produtos</h3>
 <ul>
-<li>Remove produtos com <code>preco</code> nulo ou ≤ 0</li>
-<li><code>estoque</code> nulo/negativo é normalizado para <code>0</code></li>
-<li><code>preco</code> arredondado para 2 casas</li>
-<li>Renomeia para <code>id_produto</code>, <code>nome_produto</code>, <code>categoria_produto</code>, <code>preco_produto</code>, <code>estoque_produto</code></li>
+<li><code>preco</code> convertido para <code>double</code> e filtrado (<code>preco &gt; 0</code>)</li>
+<li><code>estoque</code> convertido para <code>int</code>; valores negativos viram <code>0</code></li>
+<li><code>nome</code> e <code>categoria</code> padronizados com <code>trim</code> + <code>initcap</code></li>
 </ul>
 <h3 id="pedidos">Pedidos</h3>
 <ul>
-<li>Remove pedidos com <code>valor_total</code> ou <code>quantidade</code> inválidos (nulos ou ≤ 0)</li>
-<li><code>status</code> normalizado; valores fora do domínio viram <code>"desconhecido"</code>
-  (domínio: <code>entregue</code>, <code>em_transito</code>, <code>processando</code>, <code>finalizado</code>, <code>cancelado</code>)</li>
+<li><code>quantidade</code> (int) e <code>valor_total</code> (double) validados (<code>&gt; 0</code>)</li>
 <li><code>data_pedido</code> convertida para <code>date</code></li>
-<li>Renomeia para <code>id_pedido</code>, <code>id_cliente</code>, <code>id_produto</code>, <code>quantidade_pedido</code>,
-  <code>valor_total_pedido</code>, <code>status_pedido</code></li>
+<li><code>status</code> normalizado com <code>lower</code> + <code>trim</code></li>
 </ul>
-<div class="highlight"><pre><span></span><code><span class="n">df_clientes_silver</span> <span class="o">=</span> <span class="p">(</span>
-    <span class="n">df_clientes_bronze</span>
-    <span class="o">.</span><span class="n">dropDuplicates</span><span class="p">([</span><span class="s2">&quot;id&quot;</span><span class="p">])</span>
-    <span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">F</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="s2">&quot;id&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">isNotNull</span><span class="p">())</span>
-    <span class="o">.</span><span class="n">withColumn</span><span class="p">(</span><span class="s2">&quot;nome&quot;</span><span class="p">,</span>  <span class="n">F</span><span class="o">.</span><span class="n">initcap</span><span class="p">(</span><span class="n">F</span><span class="o">.</span><span class="n">trim</span><span class="p">(</span><span class="n">F</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="s2">&quot;nome&quot;</span><span class="p">))))</span>
-    <span class="o">.</span><span class="n">withColumn</span><span class="p">(</span><span class="s2">&quot;email&quot;</span><span class="p">,</span> <span class="n">F</span><span class="o">.</span><span class="n">lower</span><span class="p">(</span><span class="n">F</span><span class="o">.</span><span class="n">trim</span><span class="p">(</span><span class="n">F</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="s2">&quot;email&quot;</span><span class="p">))))</span>
-    <span class="o">.</span><span class="n">withColumnRenamed</span><span class="p">(</span><span class="s2">&quot;id&quot;</span><span class="p">,</span> <span class="s2">&quot;id_cliente&quot;</span><span class="p">)</span>
-    <span class="o">.</span><span class="n">withColumn</span><span class="p">(</span><span class="s2">&quot;data_processamento&quot;</span><span class="p">,</span> <span class="n">F</span><span class="o">.</span><span class="n">current_timestamp</span><span class="p">())</span>
-    <span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="s2">&quot;nome_arquivo&quot;</span><span class="p">)</span>
-<span class="p">)</span>
-</code></pre></div>
 <h2 id="resultado">Resultado</h2>
 <p>Tabelas <code>silver.clientes</code>, <code>silver.produtos</code> e <code>silver.pedidos</code> — dados limpos, validados e
 padronizados, prontos para alimentar o modelo dimensional na camada <strong>Gold</strong>.</p>
@@ -955,7 +950,7 @@ padronizados, prontos para alimentar o modelo dimensional na camada <strong>Gold
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.tabs", "navigation.sections", "content.code.copy"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.tabs", "navigation.tabs.sticky", "navigation.sections", "content.code.copy"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
     
     
       <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>

@@ -78,7 +78,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#modelo-dimensional-ralph-kimball" class="md-skip">
+        <a href="#modelo-dimensional" class="md-skip">
           Skip to content
         </a>
       
@@ -90,7 +90,9 @@
     
       
 
-<header class="md-header" data-md-component="header">
+  
+
+<header class="md-header md-header--shadow md-header--lifted" data-md-component="header">
   <nav class="md-header__inner md-grid" aria-label="Header">
     <a href=".." title="Trabalho 3 — Databricks Arquitetura Medalhão" class="md-header__button md-logo" aria-label="Trabalho 3 — Databricks Arquitetura Medalhão" data-md-component="logo">
       
@@ -179,14 +181,8 @@
     
   </nav>
   
-</header>
     
-    <div class="md-container" data-md-component="container">
       
-      
-        
-          
-            
 <nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
   <div class="md-grid">
     <ul class="md-tabs__list">
@@ -273,7 +269,13 @@
     </ul>
   </div>
 </nav>
-          
+    
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
         
       
       <main class="md-main" data-md-component="main">
@@ -608,10 +610,10 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#fato_pedidos" class="md-nav__link">
+  <a href="#fato_pedido" class="md-nav__link">
     <span class="md-ellipsis">
       
-        fato_pedidos
+        fato_pedido
       
     </span>
   </a>
@@ -636,10 +638,10 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#dim_clientes" class="md-nav__link">
+  <a href="#dim_cliente" class="md-nav__link">
     <span class="md-ellipsis">
       
-        dim_clientes
+        dim_cliente
       
     </span>
   </a>
@@ -647,21 +649,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#dim_produtos" class="md-nav__link">
+  <a href="#dim_produto" class="md-nav__link">
     <span class="md-ellipsis">
       
-        dim_produtos
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#dim_tempo" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        dim_tempo
+        dim_produto
       
     </span>
   </a>
@@ -769,10 +760,10 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#fato_pedidos" class="md-nav__link">
+  <a href="#fato_pedido" class="md-nav__link">
     <span class="md-ellipsis">
       
-        fato_pedidos
+        fato_pedido
       
     </span>
   </a>
@@ -797,10 +788,10 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#dim_clientes" class="md-nav__link">
+  <a href="#dim_cliente" class="md-nav__link">
     <span class="md-ellipsis">
       
-        dim_clientes
+        dim_cliente
       
     </span>
   </a>
@@ -808,21 +799,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#dim_produtos" class="md-nav__link">
+  <a href="#dim_produto" class="md-nav__link">
     <span class="md-ellipsis">
       
-        dim_produtos
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#dim_tempo" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        dim_tempo
+        dim_produto
       
     </span>
   </a>
@@ -873,17 +853,17 @@
 
 
 
-<h1 id="modelo-dimensional-ralph-kimball">Modelo Dimensional (Ralph Kimball)</h1>
-<p>A camada <strong>Gold</strong> organiza os dados em um <strong>Star Schema</strong> segundo a metodologia de <strong>Ralph Kimball</strong>:
-uma tabela <strong>fato</strong> central cercada por <strong>dimensões</strong>.</p>
-<div class="highlight"><pre><span></span><code>              dim_clientes
-                   │
-   dim_tempo ──── fato_pedidos ──── dim_produtos
+<h1 id="modelo-dimensional">Modelo Dimensional</h1>
+<p>A camada <strong>Gold</strong> organiza os dados em um <strong>Star Schema</strong>: uma tabela <strong>fato</strong> central cercada por
+<strong>dimensões</strong>.</p>
+<div class="highlight"><pre><span></span><code>        dim_cliente
+             │
+        fato_pedido ─── dim_produto
 </code></pre></div>
 <h2 id="tabela-fato">Tabela fato</h2>
-<h3 id="fato_pedidos"><code>fato_pedidos</code></h3>
-<p>Registra cada transação de venda. Contém as <strong>chaves estrangeiras</strong> (surrogate keys) para as
-dimensões e as <strong>métricas</strong> numéricas.</p>
+<h3 id="fato_pedido"><code>fato_pedido</code></h3>
+<p>Registra cada pedido (transação de venda). Contém as <strong>chaves de negócio</strong> para as dimensões, as
+<strong>métricas</strong> numéricas e os atributos de tempo derivados da data do pedido.</p>
 <table>
 <thead>
 <tr>
@@ -894,54 +874,54 @@ dimensões e as <strong>métricas</strong> numéricas.</p>
 </thead>
 <tbody>
 <tr>
-<td><code>sk_pedido</code></td>
-<td>int</td>
-<td>Surrogate key da fato</td>
+<td><code>pedido_id</code></td>
+<td>string</td>
+<td>Chave de negócio do pedido</td>
 </tr>
 <tr>
-<td><code>id_pedido</code></td>
-<td>int</td>
-<td>Chave natural do pedido</td>
+<td><code>cliente_id</code></td>
+<td>string</td>
+<td>FK → <code>dim_cliente</code></td>
 </tr>
 <tr>
-<td><code>sk_cliente</code></td>
-<td>int</td>
-<td>FK → <code>dim_clientes</code></td>
+<td><code>produto_id</code></td>
+<td>string</td>
+<td>FK → <code>dim_produto</code></td>
 </tr>
 <tr>
-<td><code>sk_produto</code></td>
-<td>int</td>
-<td>FK → <code>dim_produtos</code></td>
+<td><code>data_pedido</code></td>
+<td>date</td>
+<td>Data do pedido</td>
 </tr>
 <tr>
-<td><code>sk_tempo</code></td>
+<td><code>ano</code> / <code>mes</code> / <code>dia</code></td>
 <td>int</td>
-<td>FK → <code>dim_tempo</code> (<code>YYYYMMDD</code>)</td>
+<td>Atributos de tempo derivados</td>
 </tr>
 <tr>
-<td><code>quantidade_pedido</code></td>
+<td><code>quantidade</code></td>
 <td>int</td>
 <td>Métrica — unidades</td>
 </tr>
 <tr>
-<td><code>valor_total_pedido</code></td>
+<td><code>valor_total</code></td>
 <td>double</td>
 <td>Métrica — receita</td>
 </tr>
 <tr>
-<td><code>status_pedido</code></td>
+<td><code>status</code></td>
 <td>string</td>
 <td>Status do pedido</td>
 </tr>
 <tr>
-<td><code>data_processamento</code></td>
+<td><code>gold_created_at</code></td>
 <td>timestamp</td>
 <td>Auditoria</td>
 </tr>
 </tbody>
 </table>
 <h2 id="dimensoes">Dimensões</h2>
-<h3 id="dim_clientes"><code>dim_clientes</code></h3>
+<h3 id="dim_cliente"><code>dim_cliente</code></h3>
 <table>
 <thead>
 <tr>
@@ -951,20 +931,24 @@ dimensões e as <strong>métricas</strong> numéricas.</p>
 </thead>
 <tbody>
 <tr>
-<td><code>sk_cliente</code></td>
-<td>Surrogate key</td>
+<td><code>cliente_id</code></td>
+<td>Chave de negócio</td>
 </tr>
 <tr>
-<td><code>id_cliente</code></td>
-<td>Chave natural</td>
+<td><code>nome_cliente</code></td>
+<td>Nome do cliente</td>
 </tr>
 <tr>
-<td><code>nome_cliente</code>, <code>email_cliente</code>, <code>cidade_cliente</code></td>
-<td>Atributos descritivos</td>
+<td><code>email</code></td>
+<td>E-mail</td>
+</tr>
+<tr>
+<td><code>cidade</code></td>
+<td>Cidade</td>
 </tr>
 </tbody>
 </table>
-<h3 id="dim_produtos"><code>dim_produtos</code></h3>
+<h3 id="dim_produto"><code>dim_produto</code></h3>
 <table>
 <thead>
 <tr>
@@ -974,60 +958,37 @@ dimensões e as <strong>métricas</strong> numéricas.</p>
 </thead>
 <tbody>
 <tr>
-<td><code>sk_produto</code></td>
-<td>Surrogate key</td>
+<td><code>produto_id</code></td>
+<td>Chave de negócio</td>
 </tr>
 <tr>
-<td><code>id_produto</code></td>
-<td>Chave natural</td>
+<td><code>nome_produto</code></td>
+<td>Nome do produto</td>
 </tr>
 <tr>
-<td><code>nome_produto</code>, <code>categoria_produto</code>, <code>preco_produto</code></td>
-<td>Atributos descritivos</td>
-</tr>
-</tbody>
-</table>
-<h3 id="dim_tempo"><code>dim_tempo</code></h3>
-<table>
-<thead>
-<tr>
-<th>Coluna</th>
-<th>Descrição</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>sk_tempo</code></td>
-<td>Surrogate key (<code>YYYYMMDD</code>)</td>
+<td><code>categoria</code></td>
+<td>Categoria</td>
 </tr>
 <tr>
-<td><code>data_completa</code></td>
-<td>Data</td>
-</tr>
-<tr>
-<td><code>ano</code>, <code>mes</code>, <code>dia</code>, <code>trimestre</code></td>
-<td>Partes da data</td>
-</tr>
-<tr>
-<td><code>nome_mes</code>, <code>dia_semana</code></td>
-<td>Atributos descritivos</td>
+<td><code>preco</code></td>
+<td>Preço</td>
 </tr>
 </tbody>
 </table>
 <h2 id="por-que-star-schema">Por que Star Schema?</h2>
 <ul>
-<li><strong>Surrogate keys</strong> desacoplam o modelo analítico das chaves do sistema de origem</li>
-<li>Consultas com <code>JOIN</code> simples entre fato e dimensões → ótimo desempenho de leitura</li>
+<li>Consultas com <code>JOIN</code> simples entre a fato e as dimensões → ótimo desempenho de leitura</li>
 <li>Estrutura intuitiva para ferramentas de BI</li>
+<li>Separação clara entre <strong>métricas</strong> (fato) e <strong>atributos descritivos</strong> (dimensões)</li>
 </ul>
 <h2 id="exemplo-de-consulta">Exemplo de consulta</h2>
 <div class="highlight"><pre><span></span><code><span class="k">SELECT</span>
-<span class="w">    </span><span class="n">p</span><span class="p">.</span><span class="n">categoria_produto</span><span class="p">,</span>
-<span class="w">    </span><span class="k">COUNT</span><span class="p">(</span><span class="n">f</span><span class="p">.</span><span class="n">id_pedido</span><span class="p">)</span><span class="w">        </span><span class="k">AS</span><span class="w"> </span><span class="n">total_pedidos</span><span class="p">,</span>
-<span class="w">    </span><span class="k">SUM</span><span class="p">(</span><span class="n">f</span><span class="p">.</span><span class="n">valor_total_pedido</span><span class="p">)</span><span class="w"> </span><span class="k">AS</span><span class="w"> </span><span class="n">receita_total</span>
-<span class="k">FROM</span><span class="w"> </span><span class="n">gold</span><span class="p">.</span><span class="n">fato_pedidos</span><span class="w"> </span><span class="n">f</span>
-<span class="k">JOIN</span><span class="w"> </span><span class="n">gold</span><span class="p">.</span><span class="n">dim_produtos</span><span class="w">  </span><span class="n">p</span><span class="w"> </span><span class="k">ON</span><span class="w"> </span><span class="n">f</span><span class="p">.</span><span class="n">sk_produto</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">p</span><span class="p">.</span><span class="n">sk_produto</span>
-<span class="k">GROUP</span><span class="w"> </span><span class="k">BY</span><span class="w"> </span><span class="n">p</span><span class="p">.</span><span class="n">categoria_produto</span>
+<span class="w">    </span><span class="k">c</span><span class="p">.</span><span class="n">cidade</span><span class="p">,</span>
+<span class="w">    </span><span class="k">COUNT</span><span class="p">(</span><span class="n">f</span><span class="p">.</span><span class="n">pedido_id</span><span class="p">)</span><span class="w"> </span><span class="k">AS</span><span class="w"> </span><span class="n">total_pedidos</span><span class="p">,</span>
+<span class="w">    </span><span class="k">SUM</span><span class="p">(</span><span class="n">f</span><span class="p">.</span><span class="n">valor_total</span><span class="p">)</span><span class="w"> </span><span class="k">AS</span><span class="w"> </span><span class="n">receita_total</span>
+<span class="k">FROM</span><span class="w"> </span><span class="n">workspace</span><span class="p">.</span><span class="n">gold</span><span class="p">.</span><span class="n">fato_pedido</span><span class="w"> </span><span class="n">f</span>
+<span class="k">JOIN</span><span class="w"> </span><span class="n">workspace</span><span class="p">.</span><span class="n">gold</span><span class="p">.</span><span class="n">dim_cliente</span><span class="w"> </span><span class="k">c</span><span class="w"> </span><span class="k">ON</span><span class="w"> </span><span class="n">f</span><span class="p">.</span><span class="n">cliente_id</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">c</span><span class="p">.</span><span class="n">cliente_id</span>
+<span class="k">GROUP</span><span class="w"> </span><span class="k">BY</span><span class="w"> </span><span class="k">c</span><span class="p">.</span><span class="n">cidade</span>
 <span class="k">ORDER</span><span class="w"> </span><span class="k">BY</span><span class="w"> </span><span class="n">receita_total</span><span class="w"> </span><span class="k">DESC</span><span class="p">;</span>
 </code></pre></div>
 
@@ -1079,7 +1040,7 @@ dimensões e as <strong>métricas</strong> numéricas.</p>
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.tabs", "navigation.sections", "content.code.copy"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.tabs", "navigation.tabs.sticky", "navigation.sections", "content.code.copy"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
     
     
       <script src="../assets/javascripts/bundle.79ae519e.min.js"></script>

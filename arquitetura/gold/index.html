@@ -90,7 +90,9 @@
     
       
 
-<header class="md-header" data-md-component="header">
+  
+
+<header class="md-header md-header--shadow md-header--lifted" data-md-component="header">
   <nav class="md-header__inner md-grid" aria-label="Header">
     <a href="../.." title="Trabalho 3 — Databricks Arquitetura Medalhão" class="md-header__button md-logo" aria-label="Trabalho 3 — Databricks Arquitetura Medalhão" data-md-component="logo">
       
@@ -179,14 +181,8 @@
     
   </nav>
   
-</header>
     
-    <div class="md-container" data-md-component="container">
       
-      
-        
-          
-            
 <nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
   <div class="md-grid">
     <ul class="md-tabs__list">
@@ -273,7 +269,13 @@
     </ul>
   </div>
 </nav>
-          
+    
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
         
       
       <main class="md-main" data-md-component="main">
@@ -588,10 +590,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#analises-de-validacao-star-schema-em-acao" class="md-nav__link">
+  <a href="#exemplo-de-consulta-star-schema-em-acao" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Análises de validação (Star Schema em ação)
+        Exemplo de consulta (Star Schema em ação)
       
     </span>
   </a>
@@ -728,10 +730,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#analises-de-validacao-star-schema-em-acao" class="md-nav__link">
+  <a href="#exemplo-de-consulta-star-schema-em-acao" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Análises de validação (Star Schema em ação)
+        Exemplo de consulta (Star Schema em ação)
       
     </span>
   </a>
@@ -768,43 +770,38 @@
 
 <h1 id="camada-gold">Camada Gold</h1>
 <blockquote>
-<p>Notebook: <code>005_Gold_Modelagem_Dimensional.ipynb</code></p>
+<p>Notebook: <code>04_silver_to_gold.ipynb</code></p>
 </blockquote>
-<p>A <strong>Gold</strong> lê os dados do Silver e constrói o <strong>modelo dimensional (Ralph Kimball)</strong> — um
-<strong>Star Schema</strong> otimizado para consumo analítico e BI. Formato <strong>Delta Lake</strong>, altamente governado.</p>
+<p>A <strong>Gold</strong> lê os dados do Silver e constrói o <strong>modelo dimensional</strong> — um <strong>Star Schema</strong> otimizado
+para consumo analítico e BI. Formato <strong>Delta Lake</strong>.</p>
 <h2 id="star-schema">Star Schema</h2>
-<div class="highlight"><pre><span></span><code>              dim_clientes
-                   │
-   dim_tempo ──── fato_pedidos ──── dim_produtos
+<div class="highlight"><pre><span></span><code>        dim_cliente
+             │
+        fato_pedido ─── dim_produto
 </code></pre></div>
 <table>
 <thead>
 <tr>
 <th>Tabela</th>
 <th>Tipo</th>
-<th>Chave (surrogate)</th>
+<th>Chave de negócio</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td><code>dim_clientes</code></td>
+<td><code>dim_cliente</code></td>
 <td>Dimensão</td>
-<td><code>sk_cliente</code></td>
+<td><code>cliente_id</code></td>
 </tr>
 <tr>
-<td><code>dim_produtos</code></td>
+<td><code>dim_produto</code></td>
 <td>Dimensão</td>
-<td><code>sk_produto</code></td>
+<td><code>produto_id</code></td>
 </tr>
 <tr>
-<td><code>dim_tempo</code></td>
-<td>Dimensão</td>
-<td><code>sk_tempo</code> (<code>YYYYMMDD</code>)</td>
-</tr>
-<tr>
-<td><code>fato_pedidos</code></td>
+<td><code>fato_pedido</code></td>
 <td>Fato</td>
-<td><code>sk_pedido</code></td>
+<td><code>pedido_id</code></td>
 </tr>
 </tbody>
 </table>
@@ -813,31 +810,41 @@
 </blockquote>
 <h2 id="como-e-construido">Como é construído</h2>
 <ol>
-<li><strong>Dimensões</strong> <code>dim_clientes</code> e <code>dim_produtos</code> — geram <em>surrogate key</em> com <code>row_number()</code>
-   ordenado pelo id natural.</li>
-<li><strong><code>dim_tempo</code></strong> — gerada a partir das datas distintas dos pedidos; <code>sk_tempo</code> é o inteiro
-   <code>YYYYMMDD</code>. Inclui ano, mês, dia, trimestre, nome do mês e dia da semana.</li>
-<li><strong><code>fato_pedidos</code></strong> — resolve as <em>surrogate keys</em> via <code>JOIN</code> com as dimensões e guarda as
-   métricas (<code>quantidade_pedido</code>, <code>valor_total_pedido</code>, <code>status_pedido</code>).</li>
+<li><strong><code>dim_cliente</code></strong> e <strong><code>dim_produto</code></strong> — selecionam os atributos descritivos do Silver e renomeiam a
+   chave de negócio (<code>id</code> → <code>cliente_id</code> / <code>produto_id</code>).</li>
+<li><strong><code>fato_pedido</code></strong> — parte da tabela <code>silver.pedidos</code>, mantém as chaves de negócio (<code>cliente_id</code>,
+   <code>produto_id</code>), as métricas (<code>quantidade</code>, <code>valor_total</code>), o <code>status</code> e deriva atributos de tempo
+   (<code>ano</code>, <code>mes</code>, <code>dia</code>) a partir de <code>data_pedido</code>.</li>
 </ol>
-<div class="highlight"><pre><span></span><code><span class="n">fato_pedidos</span> <span class="o">=</span> <span class="p">(</span>
-    <span class="n">df_silver_pedidos</span>
-    <span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">df_dim_clientes</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="s2">&quot;sk_cliente&quot;</span><span class="p">,</span> <span class="s2">&quot;id_cliente&quot;</span><span class="p">),</span> <span class="n">on</span><span class="o">=</span><span class="s2">&quot;id_cliente&quot;</span><span class="p">,</span> <span class="n">how</span><span class="o">=</span><span class="s2">&quot;left&quot;</span><span class="p">)</span>
-    <span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">df_dim_produtos</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="s2">&quot;sk_produto&quot;</span><span class="p">,</span> <span class="s2">&quot;id_produto&quot;</span><span class="p">),</span> <span class="n">on</span><span class="o">=</span><span class="s2">&quot;id_produto&quot;</span><span class="p">,</span> <span class="n">how</span><span class="o">=</span><span class="s2">&quot;left&quot;</span><span class="p">)</span>
-    <span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">df_dim_tempo</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="s2">&quot;sk_tempo&quot;</span><span class="p">,</span> <span class="s2">&quot;data_completa&quot;</span><span class="p">),</span>
-          <span class="n">df_silver_pedidos</span><span class="p">[</span><span class="s2">&quot;data_pedido&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="n">df_dim_tempo</span><span class="p">[</span><span class="s2">&quot;data_completa&quot;</span><span class="p">],</span> <span class="n">how</span><span class="o">=</span><span class="s2">&quot;left&quot;</span><span class="p">)</span>
-    <span class="o">.</span><span class="n">withColumn</span><span class="p">(</span><span class="s2">&quot;sk_pedido&quot;</span><span class="p">,</span> <span class="n">F</span><span class="o">.</span><span class="n">row_number</span><span class="p">()</span><span class="o">.</span><span class="n">over</span><span class="p">(</span><span class="n">Window</span><span class="o">.</span><span class="n">orderBy</span><span class="p">(</span><span class="s2">&quot;id_pedido&quot;</span><span class="p">)))</span>
+<div class="highlight"><pre><span></span><code><span class="n">fato_pedido</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="n">pedidos</span>
+        <span class="o">.</span><span class="n">select</span><span class="p">(</span>
+            <span class="n">col</span><span class="p">(</span><span class="s2">&quot;id&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">alias</span><span class="p">(</span><span class="s2">&quot;pedido_id&quot;</span><span class="p">),</span>
+            <span class="n">col</span><span class="p">(</span><span class="s2">&quot;cliente_id&quot;</span><span class="p">),</span>
+            <span class="n">col</span><span class="p">(</span><span class="s2">&quot;produto_id&quot;</span><span class="p">),</span>
+            <span class="n">col</span><span class="p">(</span><span class="s2">&quot;data_pedido&quot;</span><span class="p">),</span>
+            <span class="n">year</span><span class="p">(</span><span class="n">col</span><span class="p">(</span><span class="s2">&quot;data_pedido&quot;</span><span class="p">))</span><span class="o">.</span><span class="n">alias</span><span class="p">(</span><span class="s2">&quot;ano&quot;</span><span class="p">),</span>
+            <span class="n">month</span><span class="p">(</span><span class="n">col</span><span class="p">(</span><span class="s2">&quot;data_pedido&quot;</span><span class="p">))</span><span class="o">.</span><span class="n">alias</span><span class="p">(</span><span class="s2">&quot;mes&quot;</span><span class="p">),</span>
+            <span class="n">dayofmonth</span><span class="p">(</span><span class="n">col</span><span class="p">(</span><span class="s2">&quot;data_pedido&quot;</span><span class="p">))</span><span class="o">.</span><span class="n">alias</span><span class="p">(</span><span class="s2">&quot;dia&quot;</span><span class="p">),</span>
+            <span class="n">col</span><span class="p">(</span><span class="s2">&quot;quantidade&quot;</span><span class="p">),</span>
+            <span class="n">col</span><span class="p">(</span><span class="s2">&quot;valor_total&quot;</span><span class="p">),</span>
+            <span class="n">col</span><span class="p">(</span><span class="s2">&quot;status&quot;</span><span class="p">),</span>
+            <span class="n">current_timestamp</span><span class="p">()</span><span class="o">.</span><span class="n">alias</span><span class="p">(</span><span class="s2">&quot;gold_created_at&quot;</span><span class="p">)</span>
+        <span class="p">)</span>
 <span class="p">)</span>
 </code></pre></div>
-<h2 id="analises-de-validacao-star-schema-em-acao">Análises de validação (Star Schema em ação)</h2>
-<p>O notebook executa consultas que comprovam o modelo:</p>
-<ul>
-<li><strong>Receita por categoria de produto</strong> (<code>fato_pedidos</code> × <code>dim_produtos</code>)</li>
-<li><strong>Receita por cidade do cliente</strong> (<code>fato_pedidos</code> × <code>dim_clientes</code>)</li>
-<li><strong>Pedidos por período</strong> ano/mês (<code>fato_pedidos</code> × <code>dim_tempo</code>)</li>
-</ul>
+<h2 id="exemplo-de-consulta-star-schema-em-acao">Exemplo de consulta (Star Schema em ação)</h2>
+<div class="highlight"><pre><span></span><code><span class="k">SELECT</span>
+<span class="w">    </span><span class="n">p</span><span class="p">.</span><span class="n">categoria</span><span class="p">,</span>
+<span class="w">    </span><span class="k">COUNT</span><span class="p">(</span><span class="n">f</span><span class="p">.</span><span class="n">pedido_id</span><span class="p">)</span><span class="w">   </span><span class="k">AS</span><span class="w"> </span><span class="n">total_pedidos</span><span class="p">,</span>
+<span class="w">    </span><span class="k">SUM</span><span class="p">(</span><span class="n">f</span><span class="p">.</span><span class="n">valor_total</span><span class="p">)</span><span class="w">   </span><span class="k">AS</span><span class="w"> </span><span class="n">receita_total</span>
+<span class="k">FROM</span><span class="w"> </span><span class="n">workspace</span><span class="p">.</span><span class="n">gold</span><span class="p">.</span><span class="n">fato_pedido</span><span class="w"> </span><span class="n">f</span>
+<span class="k">JOIN</span><span class="w"> </span><span class="n">workspace</span><span class="p">.</span><span class="n">gold</span><span class="p">.</span><span class="n">dim_produto</span><span class="w"> </span><span class="n">p</span><span class="w"> </span><span class="k">ON</span><span class="w"> </span><span class="n">f</span><span class="p">.</span><span class="n">produto_id</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">p</span><span class="p">.</span><span class="n">produto_id</span>
+<span class="k">GROUP</span><span class="w"> </span><span class="k">BY</span><span class="w"> </span><span class="n">p</span><span class="p">.</span><span class="n">categoria</span>
+<span class="k">ORDER</span><span class="w"> </span><span class="k">BY</span><span class="w"> </span><span class="n">receita_total</span><span class="w"> </span><span class="k">DESC</span><span class="p">;</span>
+</code></pre></div>
 <h2 id="resultado">Resultado</h2>
-<p>Schema <code>gold</code> com <code>dim_clientes</code>, <code>dim_produtos</code>, <code>dim_tempo</code> e <code>fato_pedidos</code> —
+<p>Schema <code>gold</code> com <code>dim_cliente</code>, <code>dim_produto</code> e <code>fato_pedido</code> —
 <strong>pipeline Medalhão completo</strong>: <code>Landing → Bronze → Silver → Gold</code>.</p>
 
 
@@ -888,7 +895,7 @@
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.tabs", "navigation.sections", "content.code.copy"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.tabs", "navigation.tabs.sticky", "navigation.sections", "content.code.copy"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
     
     
       <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>

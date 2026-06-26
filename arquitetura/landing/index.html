@@ -90,7 +90,9 @@
     
       
 
-<header class="md-header" data-md-component="header">
+  
+
+<header class="md-header md-header--shadow md-header--lifted" data-md-component="header">
   <nav class="md-header__inner md-grid" aria-label="Header">
     <a href="../.." title="Trabalho 3 — Databricks Arquitetura Medalhão" class="md-header__button md-logo" aria-label="Trabalho 3 — Databricks Arquitetura Medalhão" data-md-component="logo">
       
@@ -179,14 +181,8 @@
     
   </nav>
   
-</header>
     
-    <div class="md-container" data-md-component="container">
       
-      
-        
-          
-            
 <nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
   <div class="md-grid">
     <ul class="md-tabs__list">
@@ -273,7 +269,13 @@
     </ul>
   </div>
 </nav>
-          
+    
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
         
       
       <main class="md-main" data-md-component="main">
@@ -768,48 +770,59 @@
 
 <h1 id="camada-landing">Camada Landing</h1>
 <blockquote>
-<p>Notebook: <code>002_Landing_Extracao.ipynb</code></p>
+<p>Notebook: <code>01_extract_supabase_to_landing.ipynb</code></p>
 </blockquote>
 <p>A <strong>Landing</strong> é a camada provisória responsável pela <strong>primeira ingestão</strong> dos dados no Data Lake.
 Os dados são gravados no <strong>formato original da origem</strong> — neste trabalho, <strong>CSV</strong> (origem relacional).</p>
+<p>Este notebook também <strong>prepara o ambiente</strong>: cria os schemas (<code>landing</code>, <code>bronze</code>, <code>silver</code>, <code>gold</code>)
+e o <strong>Volume</strong> da Landing Zone.</p>
+<div class="highlight"><pre><span></span><code><span class="k">CREATE</span><span class="w"> </span><span class="k">SCHEMA</span><span class="w"> </span><span class="k">IF</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">EXISTS</span><span class="w"> </span><span class="n">landing</span><span class="p">;</span>
+<span class="k">CREATE</span><span class="w"> </span><span class="k">SCHEMA</span><span class="w"> </span><span class="k">IF</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">EXISTS</span><span class="w"> </span><span class="n">bronze</span><span class="p">;</span>
+<span class="k">CREATE</span><span class="w"> </span><span class="k">SCHEMA</span><span class="w"> </span><span class="k">IF</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">EXISTS</span><span class="w"> </span><span class="n">silver</span><span class="p">;</span>
+<span class="k">CREATE</span><span class="w"> </span><span class="k">SCHEMA</span><span class="w"> </span><span class="k">IF</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">EXISTS</span><span class="w"> </span><span class="n">gold</span><span class="p">;</span>
+
+<span class="k">CREATE</span><span class="w"> </span><span class="n">VOLUME</span><span class="w"> </span><span class="k">IF</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">EXISTS</span><span class="w"> </span><span class="n">workspace</span><span class="p">.</span><span class="n">landing</span><span class="p">.</span><span class="n">dados</span><span class="p">;</span>
+</code></pre></div>
 <h2 id="o-que-a-camada-faz">O que a camada faz</h2>
 <ul>
-<li>Conecta no banco de origem (<strong>Supabase / PostgreSQL</strong>) via <strong>psycopg2</strong></li>
+<li>Conecta no banco de origem (<strong>Supabase / PostgreSQL</strong>) via <strong>JDBC</strong></li>
 <li>Extrai <strong>todas as tabelas</strong> (<code>clientes</code>, <code>produtos</code>, <code>pedidos</code>)</li>
-<li>Grava cada tabela como <strong>CSV</strong> no Volume <code>/Volumes/&lt;catalog&gt;/landing/dados/{tabela}/</code></li>
+<li>Adiciona metadados de auditoria (<code>_source_table</code>, <code>_extracted_at</code>)</li>
+<li>Grava cada tabela como <strong>CSV</strong> no Volume <code>/Volumes/workspace/landing/dados/{tabela}/</code></li>
+<li>Registra as tabelas no schema <code>landing</code></li>
 </ul>
-<div class="highlight"><pre><span></span><code><span class="o">%</span><span class="n">pip</span> <span class="n">install</span> <span class="n">psycopg2</span><span class="o">-</span><span class="n">binary</span>
-<span class="n">dbutils</span><span class="o">.</span><span class="n">library</span><span class="o">.</span><span class="n">restartPython</span><span class="p">()</span>
-
-<span class="kn">import</span><span class="w"> </span><span class="nn">psycopg2</span><span class="o">,</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span><span class="o">,</span><span class="w"> </span><span class="nn">os</span>
-
-<span class="n">conn</span> <span class="o">=</span> <span class="n">psycopg2</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">host</span><span class="o">=</span><span class="n">SUPABASE_HOST</span><span class="p">,</span> <span class="n">port</span><span class="o">=</span><span class="n">SUPABASE_PORT</span><span class="p">,</span> <span class="n">dbname</span><span class="o">=</span><span class="n">SUPABASE_DB</span><span class="p">,</span>
-                        <span class="n">user</span><span class="o">=</span><span class="n">SUPABASE_USER</span><span class="p">,</span> <span class="n">password</span><span class="o">=</span><span class="n">SUPABASE_PASSWORD</span><span class="p">,</span> <span class="n">sslmode</span><span class="o">=</span><span class="s2">&quot;require&quot;</span><span class="p">)</span>
-
-<span class="n">pdf</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_sql</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;SELECT * FROM </span><span class="si">{</span><span class="n">tabela</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">conn</span><span class="p">)</span>
-<span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">LANDING_PATH</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">tabela</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-<span class="n">pdf</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">LANDING_PATH</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">tabela</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">tabela</span><span class="si">}</span><span class="s2">.csv&quot;</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<div class="highlight"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">read_supabase_table</span><span class="p">(</span><span class="n">table_name</span><span class="p">):</span>
+    <span class="k">return</span> <span class="p">(</span>
+        <span class="n">spark</span><span class="o">.</span><span class="n">read</span>
+            <span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="s2">&quot;jdbc&quot;</span><span class="p">)</span>
+            <span class="o">.</span><span class="n">option</span><span class="p">(</span><span class="s2">&quot;url&quot;</span><span class="p">,</span> <span class="n">jdbc_url</span><span class="p">)</span>
+            <span class="o">.</span><span class="n">option</span><span class="p">(</span><span class="s2">&quot;dbtable&quot;</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;public.</span><span class="si">{</span><span class="n">table_name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="o">.</span><span class="n">option</span><span class="p">(</span><span class="s2">&quot;user&quot;</span><span class="p">,</span> <span class="n">SUPABASE_USER</span><span class="p">)</span>
+            <span class="o">.</span><span class="n">option</span><span class="p">(</span><span class="s2">&quot;password&quot;</span><span class="p">,</span> <span class="n">SUPABASE_PASSWORD</span><span class="p">)</span>
+            <span class="o">.</span><span class="n">option</span><span class="p">(</span><span class="s2">&quot;driver&quot;</span><span class="p">,</span> <span class="s2">&quot;org.postgresql.Driver&quot;</span><span class="p">)</span>
+            <span class="o">.</span><span class="n">load</span><span class="p">()</span>
+    <span class="p">)</span>
 </code></pre></div>
 <div class="admonition info">
 <p class="admonition-title">Databricks Free Edition é serverless</p>
-<p>O Free Edition <strong>não tem cluster clássico</strong> nem aba <em>Libraries</em> — não dá para instalar driver
-<strong>Maven</strong>. Por isso a extração usa <strong>psycopg2</strong> (driver Python), instalado no próprio notebook
-com <code>%pip install psycopg2-binary</code>. A Landing Zone também não usa DBFS (<code>/FileStore</code>, restrito
-no serverless), e sim um <strong>Volume</strong> do Unity Catalog: <code>/Volumes/&lt;catalog&gt;/landing/dados</code>.</p>
+<p>O driver JDBC do PostgreSQL (<code>org.postgresql.Driver</code>) <strong>já vem incluído no Databricks Runtime</strong>,
+então <strong>não é preciso instalar nada</strong> (nem biblioteca Maven nem <code>pip</code>). A Landing Zone usa um
+<strong>Volume</strong> do Unity Catalog (<code>/Volumes/workspace/landing/dados</code>), e não o DBFS <code>/FileStore</code>
+(restrito no serverless).</p>
 </div>
 <div class="admonition warning">
-<p class="admonition-title">Conexão IPv6 vs IPv4 (Supabase)</p>
-<p>A conexão <strong>direta</strong> (<code>db.xxxx.supabase.co</code>) costuma ser apenas IPv6 e pode dar timeout a partir
-do Databricks serverless. Se isso acontecer, use os dados do <strong>Session Pooler</strong> (IPv4) do Supabase:
-host <code>aws-0-&lt;regiao&gt;.pooler.supabase.com</code> e usuário <code>postgres.&lt;project-ref&gt;</code>.</p>
+<p class="admonition-title">Conexão: use o Session Pooler (IPv4)</p>
+<p>A conexão <strong>direta</strong> (<code>db.xxxx.supabase.co</code>) costuma ser apenas IPv6 e não é alcançável pelo
+Databricks serverless. Use os dados do <strong>Session Pooler</strong> (IPv4, porta <code>5432</code>):
+host <code>aws-1-&lt;regiao&gt;.pooler.supabase.com</code> e usuário <code>postgres.&lt;project-ref&gt;</code>.</p>
 </div>
 <h2 id="configuracao-da-conexao">Configuração da conexão</h2>
-<p>No início do notebook <code>002_Landing_Extracao.ipynb</code>, preencha as credenciais do <strong>seu</strong> projeto Supabase
-(<code>Settings → Database → Connection string</code>):</p>
-<div class="highlight"><pre><span></span><code><span class="n">SUPABASE_HOST</span>     <span class="o">=</span> <span class="s2">&quot;db.XXXXXXXXXX.supabase.co&quot;</span>
+<p>No início do notebook, preencha as credenciais do <strong>Session Pooler</strong> do seu projeto Supabase
+(em <strong>Connect → Session pooler</strong>):</p>
+<div class="highlight"><pre><span></span><code><span class="n">SUPABASE_HOST</span>     <span class="o">=</span> <span class="s2">&quot;aws-1-&lt;regiao&gt;.pooler.supabase.com&quot;</span>
 <span class="n">SUPABASE_PORT</span>     <span class="o">=</span> <span class="s2">&quot;5432&quot;</span>
-<span class="n">SUPABASE_DB</span>       <span class="o">=</span> <span class="s2">&quot;postgres&quot;</span>
-<span class="n">SUPABASE_USER</span>     <span class="o">=</span> <span class="s2">&quot;postgres&quot;</span>
+<span class="n">SUPABASE_DATABASE</span> <span class="o">=</span> <span class="s2">&quot;postgres&quot;</span>
+<span class="n">SUPABASE_USER</span>     <span class="o">=</span> <span class="s2">&quot;postgres.&lt;project-ref&gt;&quot;</span>
 <span class="n">SUPABASE_PASSWORD</span> <span class="o">=</span> <span class="s2">&quot;SUA_SENHA_AQUI&quot;</span>
 </code></pre></div>
 <h2 id="banco-de-origem-setup-do-supabase">Banco de origem (setup do Supabase)</h2>
@@ -879,8 +892,8 @@ host <code>aws-0-&lt;regiao&gt;.pooler.supabase.com</code> e usuário <code>post
 <span class="k">UNION</span><span class="w"> </span><span class="k">ALL</span><span class="w"> </span><span class="k">SELECT</span><span class="w"> </span><span class="s1">&#39;pedidos&#39;</span><span class="p">,</span><span class="w">  </span><span class="k">COUNT</span><span class="p">(</span><span class="o">*</span><span class="p">)</span><span class="w"> </span><span class="k">FROM</span><span class="w"> </span><span class="n">pedidos</span><span class="p">;</span>
 </code></pre></div>
 <h2 id="resultado">Resultado</h2>
-<p>Ao final, os dados brutos ficam disponíveis no Volume <code>/Volumes/&lt;catalog&gt;/landing/dados/</code>, prontos
-para serem ingeridos pela camada <strong>Bronze</strong>.</p>
+<p>Ao final, os dados brutos ficam disponíveis no Volume <code>/Volumes/workspace/landing/dados/</code> e como
+tabelas no schema <code>landing</code>, prontos para serem ingeridos pela camada <strong>Bronze</strong>.</p>
 
 
 
@@ -930,7 +943,7 @@ para serem ingeridos pela camada <strong>Bronze</strong>.</p>
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.tabs", "navigation.sections", "content.code.copy"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.tabs", "navigation.tabs.sticky", "navigation.sections", "content.code.copy"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
     
     
       <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>

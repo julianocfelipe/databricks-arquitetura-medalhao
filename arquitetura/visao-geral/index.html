@@ -90,7 +90,9 @@
     
       
 
-<header class="md-header" data-md-component="header">
+  
+
+<header class="md-header md-header--shadow md-header--lifted" data-md-component="header">
   <nav class="md-header__inner md-grid" aria-label="Header">
     <a href="../.." title="Trabalho 3 — Databricks Arquitetura Medalhão" class="md-header__button md-logo" aria-label="Trabalho 3 — Databricks Arquitetura Medalhão" data-md-component="logo">
       
@@ -179,14 +181,8 @@
     
   </nav>
   
-</header>
     
-    <div class="md-container" data-md-component="container">
       
-      
-        
-          
-            
 <nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
   <div class="md-grid">
     <ul class="md-tabs__list">
@@ -273,7 +269,13 @@
     </ul>
   </div>
 </nav>
-          
+    
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
         
       
       <main class="md-main" data-md-component="main">
@@ -487,10 +489,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#setup-do-ambiente-notebook-001" class="md-nav__link">
+  <a href="#onde-o-ambiente-e-preparado" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Setup do ambiente (notebook 001)
+        Onde o ambiente é preparado
       
     </span>
   </a>
@@ -739,10 +741,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#setup-do-ambiente-notebook-001" class="md-nav__link">
+  <a href="#onde-o-ambiente-e-preparado" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Setup do ambiente (notebook 001)
+        Onde o ambiente é preparado
       
     </span>
   </a>
@@ -771,21 +773,21 @@
 organizar logicamente os dados de um <strong>Data Lakehouse</strong>. O objetivo é <strong>melhorar de forma incremental e
 progressiva</strong> a estrutura e a qualidade dos dados à medida que eles fluem pelas camadas.</p>
 <p>Neste trabalho, o pipeline tem <strong>quatro camadas</strong> (Landing → Bronze → Silver → Gold), todas executadas
-no <strong>Databricks Free Edition</strong> e encadeadas por um <strong>Job (Jobs &amp; Pipelines)</strong>.</p>
+no <strong>Databricks Free Edition</strong> (serverless) e encadeadas por um <strong>Job (Jobs &amp; Pipelines)</strong>.</p>
 <h2 id="fluxo-do-pipeline">Fluxo do pipeline</h2>
 <div class="highlight"><pre><span></span><code>Supabase (PostgreSQL)
         │  JDBC
         ▼
-   LANDING / DADOS      CSV brutos (formato original da origem)
+   LANDING              CSV brutos (formato original da origem)
         │
         ▼
-     BRONZE             Delta Lake + metadados de auditoria
+     BRONZE             cópia em Delta Lake
         │
         ▼
      SILVER             Delta Lake + Data Quality
         │
         ▼
-      GOLD              Delta Lake + Star Schema (Ralph Kimball)
+      GOLD              Delta Lake + Star Schema
 </code></pre></div>
 <h2 id="resumo-das-camadas">Resumo das camadas</h2>
 <table>
@@ -801,48 +803,45 @@ no <strong>Databricks Free Edition</strong> e encadeadas por um <strong>Job (Job
 <tr>
 <td><strong>Landing</strong></td>
 <td>CSV</td>
-<td>Cópia bruta da origem, camada provisória de ingestão</td>
-<td><code>002_Landing_Extracao.ipynb</code></td>
+<td>Cópia bruta da origem (Volume), camada provisória de ingestão</td>
+<td><code>01_extract_supabase_to_landing.ipynb</code></td>
 </tr>
 <tr>
 <td><strong>Bronze</strong></td>
 <td>Delta Lake</td>
-<td>Histórico completo dos dados brutos + metadados</td>
-<td><code>003_Bronze_Ingestao.ipynb</code></td>
+<td>Cópia das tabelas da Landing em Delta</td>
+<td><code>02_landing_to_bronze.ipynb</code></td>
 </tr>
 <tr>
 <td><strong>Silver</strong></td>
 <td>Delta Lake</td>
 <td>Dados limpos, padronizados e validados (Data Quality)</td>
-<td><code>004_Silver_Data_Quality.ipynb</code></td>
+<td><code>03_bronze_to_silver.ipynb</code></td>
 </tr>
 <tr>
 <td><strong>Gold</strong></td>
 <td>Delta Lake</td>
-<td>Modelo dimensional (Kimball) otimizado para consumo/BI</td>
-<td><code>005_Gold_Modelagem_Dimensional.ipynb</code></td>
+<td>Modelo dimensional (star schema) para consumo/BI</td>
+<td><code>04_silver_to_gold.ipynb</code></td>
 </tr>
 </tbody>
 </table>
+<blockquote>
+<p>O notebook <code>05_reset.ipynb</code> não faz parte do fluxo — serve para <strong>limpar o ambiente</strong> (remover
+tabelas e zerar o Volume) quando for preciso recomeçar.</p>
+</blockquote>
 <h2 id="caracteristica-de-cada-camada">Característica de cada camada</h2>
 <ul>
-<li><strong>Landing</strong> — camada provisória da primeira ingestão. Formato original da origem (CSV/JSON). Usada
-  apenas por engenheiros de dados, normalmente como backup para recriar conjuntos de dados.</li>
-<li><strong>Bronze</strong> — cópia da landing, mas em <strong>Delta Lake</strong> (ACID, metadados). Mantém o histórico completo,
-  dados imutáveis (apenas leitura), normalmente particionados por data.</li>
-<li><strong>Silver</strong> — formato Delta. Aplica <strong>regras de qualidade e padronização</strong> (nomenclatura, maiúsculo
-  x minúsculo, remoção de abreviações), remove duplicados, trata nulos e valores inválidos.</li>
-<li><strong>Gold</strong> — formato Delta. Dados transformados segundo as <strong>regras de negócio</strong>, em modelo otimizado
-  para leitura (dimensional / star schema). Altamente governado e documentado.</li>
+<li><strong>Landing</strong> — camada provisória da primeira ingestão. Formato original da origem (CSV). Aqui também
+  são criados os schemas (<code>landing</code>, <code>bronze</code>, <code>silver</code>, <code>gold</code>) e o <strong>Volume</strong> da Landing Zone.</li>
+<li><strong>Bronze</strong> — cópia da landing em <strong>Delta Lake</strong> (ACID, metadados). Mantém o histórico dos dados brutos.</li>
+<li><strong>Silver</strong> — formato Delta. Aplica <strong>regras de qualidade e padronização</strong> (trim, maiúsculo/minúsculo,
+  tipagem), remove duplicados e registros inválidos.</li>
+<li><strong>Gold</strong> — formato Delta. Dados em <strong>modelo dimensional (star schema)</strong>, otimizado para leitura e BI.</li>
 </ul>
-<h2 id="setup-do-ambiente-notebook-001">Setup do ambiente (notebook 001)</h2>
-<p>O notebook <code>001_Preparando_Ambiente.ipynb</code> prepara todo o ambiente antes da execução:</p>
-<ul>
-<li>Remove o ambiente anterior (execução limpa)</li>
-<li>Cria os schemas <code>landing</code>, <code>bronze</code>, <code>silver</code> e <code>gold</code></li>
-<li>Cria a Landing Zone como <strong>Volume</strong> do Unity Catalog (<code>/Volumes/&lt;catalog&gt;/landing/dados</code>)</li>
-</ul>
-<p>Veja os detalhes de cada etapa nas páginas seguintes.</p>
+<h2 id="onde-o-ambiente-e-preparado">Onde o ambiente é preparado</h2>
+<p>A criação dos schemas e do Volume acontece <strong>no início do notebook <code>01_extract_supabase_to_landing.ipynb</code></strong>
+(via <code>%sql</code>), antes da extração — por isso o pipeline tem 5 notebooks (sem um notebook separado só de setup).</p>
 
 
 
@@ -892,7 +891,7 @@ no <strong>Databricks Free Edition</strong> e encadeadas por um <strong>Job (Job
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.tabs", "navigation.sections", "content.code.copy"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.tabs", "navigation.tabs.sticky", "navigation.sections", "content.code.copy"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
     
     
       <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>

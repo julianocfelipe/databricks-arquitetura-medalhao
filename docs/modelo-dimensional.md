@@ -1,75 +1,68 @@
-# Modelo Dimensional (Ralph Kimball)
+# Modelo Dimensional
 
-A camada **Gold** organiza os dados em um **Star Schema** segundo a metodologia de **Ralph Kimball**:
-uma tabela **fato** central cercada por **dimensões**.
+A camada **Gold** organiza os dados em um **Star Schema**: uma tabela **fato** central cercada por
+**dimensões**.
 
 ```
-              dim_clientes
-                   │
-   dim_tempo ──── fato_pedidos ──── dim_produtos
+        dim_cliente
+             │
+        fato_pedido ─── dim_produto
 ```
 
 ## Tabela fato
 
-### `fato_pedidos`
+### `fato_pedido`
 
-Registra cada transação de venda. Contém as **chaves estrangeiras** (surrogate keys) para as
-dimensões e as **métricas** numéricas.
+Registra cada pedido (transação de venda). Contém as **chaves de negócio** para as dimensões, as
+**métricas** numéricas e os atributos de tempo derivados da data do pedido.
 
 | Coluna | Tipo | Descrição |
 |--------|------|-----------|
-| `sk_pedido` | int | Surrogate key da fato |
-| `id_pedido` | int | Chave natural do pedido |
-| `sk_cliente` | int | FK → `dim_clientes` |
-| `sk_produto` | int | FK → `dim_produtos` |
-| `sk_tempo` | int | FK → `dim_tempo` (`YYYYMMDD`) |
-| `quantidade_pedido` | int | Métrica — unidades |
-| `valor_total_pedido` | double | Métrica — receita |
-| `status_pedido` | string | Status do pedido |
-| `data_processamento` | timestamp | Auditoria |
+| `pedido_id` | string | Chave de negócio do pedido |
+| `cliente_id` | string | FK → `dim_cliente` |
+| `produto_id` | string | FK → `dim_produto` |
+| `data_pedido` | date | Data do pedido |
+| `ano` / `mes` / `dia` | int | Atributos de tempo derivados |
+| `quantidade` | int | Métrica — unidades |
+| `valor_total` | double | Métrica — receita |
+| `status` | string | Status do pedido |
+| `gold_created_at` | timestamp | Auditoria |
 
 ## Dimensões
 
-### `dim_clientes`
+### `dim_cliente`
 
 | Coluna | Descrição |
 |--------|-----------|
-| `sk_cliente` | Surrogate key |
-| `id_cliente` | Chave natural |
-| `nome_cliente`, `email_cliente`, `cidade_cliente` | Atributos descritivos |
+| `cliente_id` | Chave de negócio |
+| `nome_cliente` | Nome do cliente |
+| `email` | E-mail |
+| `cidade` | Cidade |
 
-### `dim_produtos`
-
-| Coluna | Descrição |
-|--------|-----------|
-| `sk_produto` | Surrogate key |
-| `id_produto` | Chave natural |
-| `nome_produto`, `categoria_produto`, `preco_produto` | Atributos descritivos |
-
-### `dim_tempo`
+### `dim_produto`
 
 | Coluna | Descrição |
 |--------|-----------|
-| `sk_tempo` | Surrogate key (`YYYYMMDD`) |
-| `data_completa` | Data |
-| `ano`, `mes`, `dia`, `trimestre` | Partes da data |
-| `nome_mes`, `dia_semana` | Atributos descritivos |
+| `produto_id` | Chave de negócio |
+| `nome_produto` | Nome do produto |
+| `categoria` | Categoria |
+| `preco` | Preço |
 
 ## Por que Star Schema?
 
-- **Surrogate keys** desacoplam o modelo analítico das chaves do sistema de origem
-- Consultas com `JOIN` simples entre fato e dimensões → ótimo desempenho de leitura
+- Consultas com `JOIN` simples entre a fato e as dimensões → ótimo desempenho de leitura
 - Estrutura intuitiva para ferramentas de BI
+- Separação clara entre **métricas** (fato) e **atributos descritivos** (dimensões)
 
 ## Exemplo de consulta
 
 ```sql
 SELECT
-    p.categoria_produto,
-    COUNT(f.id_pedido)        AS total_pedidos,
-    SUM(f.valor_total_pedido) AS receita_total
-FROM gold.fato_pedidos f
-JOIN gold.dim_produtos  p ON f.sk_produto = p.sk_produto
-GROUP BY p.categoria_produto
+    c.cidade,
+    COUNT(f.pedido_id) AS total_pedidos,
+    SUM(f.valor_total) AS receita_total
+FROM workspace.gold.fato_pedido f
+JOIN workspace.gold.dim_cliente c ON f.cliente_id = c.cliente_id
+GROUP BY c.cidade
 ORDER BY receita_total DESC;
 ```

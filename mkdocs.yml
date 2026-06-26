@@ -10,17 +10,18 @@ theme:
       accent: light green
   features:
     - navigation.tabs
+    - navigation.tabs.sticky
     - navigation.sections
     - content.code.copy
 
 nav:
   - Início: index.md
   - Arquitetura:
-    - Visão Geral: arquitetura/visao-geral.md
-    - Landing: arquitetura/landing.md
-    - Bronze: arquitetura/bronze.md
-    - Silver: arquitetura/silver.md
-    - Gold: arquitetura/gold.md
+      - Visão Geral: arquitetura/visao-geral.md
+      - Landing: arquitetura/landing.md
+      - Bronze: arquitetura/bronze.md
+      - Silver: arquitetura/silver.md
+      - Gold: arquitetura/gold.md
   - Modelo Dimensional: modelo-dimensional.md
   - Jobs & Pipelines: jobs-pipelines.md
 

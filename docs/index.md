@@ -14,22 +14,22 @@ Loja Virtual dos trabalhos anteriores, agora em uma solução **PaaS na nuvem**.
 Supabase (PostgreSQL)
         │  JDBC
         ▼
-   LANDING / DADOS    CSV brutos
+   LANDING           CSV brutos (Volume do Unity Catalog)
         │
         ▼
-     BRONZE           Delta Lake + metadados
+     BRONZE          cópia em Delta Lake
         │
         ▼
-     SILVER           Delta Lake + Data Quality
+     SILVER          Delta Lake + Data Quality
         │
         ▼
-      GOLD            Delta Lake + Star Schema
+      GOLD           Delta Lake + Star Schema
 ```
 
 ## Navegação
 
 - **[Visão Geral](arquitetura/visao-geral.md)** — conceitos da arquitetura e resumo das camadas
-- **[Landing](arquitetura/landing.md)** — extração da origem + setup do Supabase
+- **[Landing](arquitetura/landing.md)** — extração da origem (JDBC) + setup do Supabase
 - **[Bronze](arquitetura/bronze.md)** — ingestão em Delta Lake
 - **[Silver](arquitetura/silver.md)** — Data Quality e padronização
 - **[Gold](arquitetura/gold.md)** — modelagem dimensional
@@ -38,7 +38,7 @@ Supabase (PostgreSQL)
 
 ## Tecnologias
 
-- **Databricks Free Edition** — plataforma de processamento
+- **Databricks Free Edition** — plataforma de processamento (serverless)
 - **Supabase** — banco PostgreSQL na nuvem (origem)
 - **Delta Lake** — formato de armazenamento ACID
 - **Apache Spark (PySpark)** — processamento distribuído

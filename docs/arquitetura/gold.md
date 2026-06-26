@@ -1,56 +1,67 @@
 # Camada Gold
 
-> Notebook: `005_Gold_Modelagem_Dimensional.ipynb`
+> Notebook: `04_silver_to_gold.ipynb`
 
-A **Gold** lê os dados do Silver e constrói o **modelo dimensional (Ralph Kimball)** — um
-**Star Schema** otimizado para consumo analítico e BI. Formato **Delta Lake**, altamente governado.
+A **Gold** lê os dados do Silver e constrói o **modelo dimensional** — um **Star Schema** otimizado
+para consumo analítico e BI. Formato **Delta Lake**.
 
 ## Star Schema
 
 ```
-              dim_clientes
-                   │
-   dim_tempo ──── fato_pedidos ──── dim_produtos
+        dim_cliente
+             │
+        fato_pedido ─── dim_produto
 ```
 
-| Tabela | Tipo | Chave (surrogate) |
-|--------|------|-------------------|
-| `dim_clientes` | Dimensão | `sk_cliente` |
-| `dim_produtos` | Dimensão | `sk_produto` |
-| `dim_tempo` | Dimensão | `sk_tempo` (`YYYYMMDD`) |
-| `fato_pedidos` | Fato | `sk_pedido` |
+| Tabela | Tipo | Chave de negócio |
+|--------|------|------------------|
+| `dim_cliente` | Dimensão | `cliente_id` |
+| `dim_produto` | Dimensão | `produto_id` |
+| `fato_pedido` | Fato | `pedido_id` |
 
 > Detalhes do modelo na página **[Modelo Dimensional](../modelo-dimensional.md)**.
 
 ## Como é construído
 
-1. **Dimensões** `dim_clientes` e `dim_produtos` — geram *surrogate key* com `row_number()`
-   ordenado pelo id natural.
-2. **`dim_tempo`** — gerada a partir das datas distintas dos pedidos; `sk_tempo` é o inteiro
-   `YYYYMMDD`. Inclui ano, mês, dia, trimestre, nome do mês e dia da semana.
-3. **`fato_pedidos`** — resolve as *surrogate keys* via `JOIN` com as dimensões e guarda as
-   métricas (`quantidade_pedido`, `valor_total_pedido`, `status_pedido`).
+1. **`dim_cliente`** e **`dim_produto`** — selecionam os atributos descritivos do Silver e renomeiam a
+   chave de negócio (`id` → `cliente_id` / `produto_id`).
+2. **`fato_pedido`** — parte da tabela `silver.pedidos`, mantém as chaves de negócio (`cliente_id`,
+   `produto_id`), as métricas (`quantidade`, `valor_total`), o `status` e deriva atributos de tempo
+   (`ano`, `mes`, `dia`) a partir de `data_pedido`.
 
 ```python
-fato_pedidos = (
-    df_silver_pedidos
-    .join(df_dim_clientes.select("sk_cliente", "id_cliente"), on="id_cliente", how="left")
-    .join(df_dim_produtos.select("sk_produto", "id_produto"), on="id_produto", how="left")
-    .join(df_dim_tempo.select("sk_tempo", "data_completa"),
-          df_silver_pedidos["data_pedido"] == df_dim_tempo["data_completa"], how="left")
-    .withColumn("sk_pedido", F.row_number().over(Window.orderBy("id_pedido")))
+fato_pedido = (
+    pedidos
+        .select(
+            col("id").alias("pedido_id"),
+            col("cliente_id"),
+            col("produto_id"),
+            col("data_pedido"),
+            year(col("data_pedido")).alias("ano"),
+            month(col("data_pedido")).alias("mes"),
+            dayofmonth(col("data_pedido")).alias("dia"),
+            col("quantidade"),
+            col("valor_total"),
+            col("status"),
+            current_timestamp().alias("gold_created_at")
+        )
 )
 ```
 
-## Análises de validação (Star Schema em ação)
+## Exemplo de consulta (Star Schema em ação)
 
-O notebook executa consultas que comprovam o modelo:
-
-- **Receita por categoria de produto** (`fato_pedidos` × `dim_produtos`)
-- **Receita por cidade do cliente** (`fato_pedidos` × `dim_clientes`)
-- **Pedidos por período** ano/mês (`fato_pedidos` × `dim_tempo`)
+```sql
+SELECT
+    p.categoria,
+    COUNT(f.pedido_id)   AS total_pedidos,
+    SUM(f.valor_total)   AS receita_total
+FROM workspace.gold.fato_pedido f
+JOIN workspace.gold.dim_produto p ON f.produto_id = p.produto_id
+GROUP BY p.categoria
+ORDER BY receita_total DESC;
+```
 
 ## Resultado
 
-Schema `gold` com `dim_clientes`, `dim_produtos`, `dim_tempo` e `fato_pedidos` —
+Schema `gold` com `dim_cliente`, `dim_produto` e `fato_pedido` —
 **pipeline Medalhão completo**: `Landing → Bronze → Silver → Gold`.

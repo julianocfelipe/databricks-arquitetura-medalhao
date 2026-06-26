@@ -1,51 +1,65 @@
 # Camada Landing
 
-> Notebook: `002_Landing_Extracao.ipynb`
+> Notebook: `01_extract_supabase_to_landing.ipynb`
 
 A **Landing** é a camada provisória responsável pela **primeira ingestão** dos dados no Data Lake.
 Os dados são gravados no **formato original da origem** — neste trabalho, **CSV** (origem relacional).
 
+Este notebook também **prepara o ambiente**: cria os schemas (`landing`, `bronze`, `silver`, `gold`)
+e o **Volume** da Landing Zone.
+
+```sql
+CREATE SCHEMA IF NOT EXISTS landing;
+CREATE SCHEMA IF NOT EXISTS bronze;
+CREATE SCHEMA IF NOT EXISTS silver;
+CREATE SCHEMA IF NOT EXISTS gold;
+
+CREATE VOLUME IF NOT EXISTS workspace.landing.dados;
+```
+
 ## O que a camada faz
 
-- Conecta no banco de origem (**Supabase / PostgreSQL**) via **psycopg2**
+- Conecta no banco de origem (**Supabase / PostgreSQL**) via **JDBC**
 - Extrai **todas as tabelas** (`clientes`, `produtos`, `pedidos`)
-- Grava cada tabela como **CSV** no Volume `/Volumes/<catalog>/landing/dados/{tabela}/`
+- Adiciona metadados de auditoria (`_source_table`, `_extracted_at`)
+- Grava cada tabela como **CSV** no Volume `/Volumes/workspace/landing/dados/{tabela}/`
+- Registra as tabelas no schema `landing`
 
 ```python
-%pip install psycopg2-binary
-dbutils.library.restartPython()
-
-import psycopg2, pandas as pd, os
-
-conn = psycopg2.connect(host=SUPABASE_HOST, port=SUPABASE_PORT, dbname=SUPABASE_DB,
-                        user=SUPABASE_USER, password=SUPABASE_PASSWORD, sslmode="require")
-
-pdf = pd.read_sql(f"SELECT * FROM {tabela}", conn)
-os.makedirs(f"{LANDING_PATH}/{tabela}", exist_ok=True)
-pdf.to_csv(f"{LANDING_PATH}/{tabela}/{tabela}.csv", index=False)
+def read_supabase_table(table_name):
+    return (
+        spark.read
+            .format("jdbc")
+            .option("url", jdbc_url)
+            .option("dbtable", f"public.{table_name}")
+            .option("user", SUPABASE_USER)
+            .option("password", SUPABASE_PASSWORD)
+            .option("driver", "org.postgresql.Driver")
+            .load()
+    )
 ```
 
 !!! info "Databricks Free Edition é serverless"
-    O Free Edition **não tem cluster clássico** nem aba *Libraries* — não dá para instalar driver
-    **Maven**. Por isso a extração usa **psycopg2** (driver Python), instalado no próprio notebook
-    com `%pip install psycopg2-binary`. A Landing Zone também não usa DBFS (`/FileStore`, restrito
-    no serverless), e sim um **Volume** do Unity Catalog: `/Volumes/<catalog>/landing/dados`.
+    O driver JDBC do PostgreSQL (`org.postgresql.Driver`) **já vem incluído no Databricks Runtime**,
+    então **não é preciso instalar nada** (nem biblioteca Maven nem `pip`). A Landing Zone usa um
+    **Volume** do Unity Catalog (`/Volumes/workspace/landing/dados`), e não o DBFS `/FileStore`
+    (restrito no serverless).
 
-!!! warning "Conexão IPv6 vs IPv4 (Supabase)"
-    A conexão **direta** (`db.xxxx.supabase.co`) costuma ser apenas IPv6 e pode dar timeout a partir
-    do Databricks serverless. Se isso acontecer, use os dados do **Session Pooler** (IPv4) do Supabase:
-    host `aws-0-<regiao>.pooler.supabase.com` e usuário `postgres.<project-ref>`.
+!!! warning "Conexão: use o Session Pooler (IPv4)"
+    A conexão **direta** (`db.xxxx.supabase.co`) costuma ser apenas IPv6 e não é alcançável pelo
+    Databricks serverless. Use os dados do **Session Pooler** (IPv4, porta `5432`):
+    host `aws-1-<regiao>.pooler.supabase.com` e usuário `postgres.<project-ref>`.
 
 ## Configuração da conexão
 
-No início do notebook `002_Landing_Extracao.ipynb`, preencha as credenciais do **seu** projeto Supabase
-(`Settings → Database → Connection string`):
+No início do notebook, preencha as credenciais do **Session Pooler** do seu projeto Supabase
+(em **Connect → Session pooler**):
 
 ```python
-SUPABASE_HOST     = "db.XXXXXXXXXX.supabase.co"
+SUPABASE_HOST     = "aws-1-<regiao>.pooler.supabase.com"
 SUPABASE_PORT     = "5432"
-SUPABASE_DB       = "postgres"
-SUPABASE_USER     = "postgres"
+SUPABASE_DATABASE = "postgres"
+SUPABASE_USER     = "postgres.<project-ref>"
 SUPABASE_PASSWORD = "SUA_SENHA_AQUI"
 ```
 
@@ -121,5 +135,5 @@ UNION ALL SELECT 'pedidos',  COUNT(*) FROM pedidos;
 
 ## Resultado
 
-Ao final, os dados brutos ficam disponíveis no Volume `/Volumes/<catalog>/landing/dados/`, prontos
-para serem ingeridos pela camada **Bronze**.
+Ao final, os dados brutos ficam disponíveis no Volume `/Volumes/workspace/landing/dados/` e como
+tabelas no schema `landing`, prontos para serem ingeridos pela camada **Bronze**.

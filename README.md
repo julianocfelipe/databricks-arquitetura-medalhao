@@ -18,16 +18,16 @@ Este trabalho é um complemento dos trabalhos 1 e 2, migrando o mesmo dataset (L
 Supabase (PostgreSQL)
        │
        ▼
-  LANDING/DADOS          ← CSV bruto extraído via JDBC
+  LANDING               ← CSV bruto extraído via JDBC (Volume do Unity Catalog)
        │
        ▼
-    BRONZE                ← Delta Lake + metadados de auditoria
+    BRONZE              ← cópia em Delta Lake
        │
        ▼
-    SILVER                ← Delta Lake + Data Quality
+    SILVER              ← Delta Lake + Data Quality
        │
        ▼
-     GOLD                 ← Delta Lake + Star Schema (Ralph Kimball)
+     GOLD               ← Delta Lake + Star Schema (modelagem dimensional)
 ```
 
 ## Modelo de dados
@@ -39,32 +39,33 @@ Supabase (PostgreSQL)
 
 ### Gold — Star Schema
 ```
-         dim_clientes
-              │
-dim_tempo ─── fato_pedidos ─── dim_produtos
+        dim_cliente
+             │
+        fato_pedido ─── dim_produto
 ```
 
-| Tabela | Tipo | Chave |
-|--------|------|-------|
-| `dim_clientes` | Dimensão | sk_cliente |
-| `dim_produtos` | Dimensão | sk_produto |
-| `dim_tempo` | Dimensão | sk_tempo (YYYYMMDD) |
-| `fato_pedidos` | Fato | sk_pedido |
+| Tabela | Tipo | Chave de negócio |
+|--------|------|------------------|
+| `dim_cliente` | Dimensão | cliente_id |
+| `dim_produto` | Dimensão | produto_id |
+| `fato_pedido` | Fato | pedido_id |
+
+> A fato `fato_pedido` guarda as métricas (`quantidade`, `valor_total`), o `status` e os atributos de
+> tempo derivados da data do pedido (`ano`, `mes`, `dia`).
 
 ## Notebooks
 
 | Notebook | Etapa | Descrição |
 |----------|-------|-----------|
-| `001_Preparando_Ambiente.ipynb` | Setup | Cria schemas e o Volume da Landing Zone |
-| `002_Landing_Extracao.ipynb` | Landing | Extrai do Supabase → CSV no Volume |
-| `003_Bronze_Ingestao.ipynb` | Bronze | CSV → Delta Lake com metadados |
-| `004_Silver_Data_Quality.ipynb` | Silver | Data Quality + padronização |
-| `005_Gold_Modelagem_Dimensional.ipynb` | Gold | Star Schema (Ralph Kimball) |
-| `006_Destruindo_Ambiente.ipynb` | Reset | Remove todos os schemas (CASCADE) |
+| `01_extract_supabase_to_landing.ipynb` | Landing | Cria schemas/Volume e extrai do Supabase (JDBC) → CSV + tabelas na Landing |
+| `02_landing_to_bronze.ipynb` | Bronze | Landing → Delta Lake (Bronze) |
+| `03_bronze_to_silver.ipynb` | Silver | Data Quality + padronização |
+| `04_silver_to_gold.ipynb` | Gold | Modelagem dimensional (star schema) |
+| `05_reset.ipynb` | Reset | Remove as tabelas e limpa o Volume para recomeçar |
 
 ## Tecnologias
 
-- [Databricks Free Edition](https://www.databricks.com/learn/freeedition)
+- [Databricks Free Edition](https://www.databricks.com/learn/free-edition)
 - [Supabase](https://supabase.com) — PostgreSQL cloud (banco de origem)
 - Delta Lake — formato de armazenamento
 - Apache Spark (PySpark) — processamento
@@ -76,27 +77,27 @@ dim_tempo ─── fato_pedidos ─── dim_produtos
 1. Conta no [Databricks Free Edition](https://www.databricks.com/learn/free-edition) (serverless)
 2. Conta no [Supabase](https://supabase.com)
 
-> O Free Edition é serverless — não há cluster nem biblioteca Maven a instalar. O driver do
-> PostgreSQL é instalado dentro do notebook 002 via `%pip install psycopg2-binary`.
+> O Free Edition é serverless. A leitura do PostgreSQL usa **JDBC** (`org.postgresql.Driver`), que já
+> vem incluído no Databricks Runtime — **não é preciso instalar bibliotecas** (nem Maven nem pip).
 
 ### Passo a passo
 1. Crie o banco de origem no Supabase executando o script SQL disponível na
    [documentação — Landing](https://julianocfelipe.github.io/databricks-arquitetura-medalhao/arquitetura/landing/)
 2. Importe os notebooks da pasta `notebooks/` no workspace do Databricks
-3. Configure as credenciais do Supabase no notebook `002_Landing_Extracao.ipynb`
-4. Execute os notebooks na ordem (001 → 002 → 003 → 004 → 005)
-5. Ou execute o **Job** (Jobs & Pipelines) com as 5 tasks encadeadas para automação completa
+3. Configure as credenciais do Supabase (Session Pooler) no notebook `01_extract_supabase_to_landing.ipynb`
+4. Execute os notebooks na ordem (01 → 02 → 03 → 04)
+5. Ou execute o **Job** (Jobs & Pipelines) com as 4 tasks encadeadas para automação completa
+6. Use o `05_reset.ipynb` quando quiser limpar o ambiente e recomeçar
 
 ## Estrutura do repositório
 
 ```
-├── notebooks/               # Notebooks Databricks
-│   ├── 001_Preparando_Ambiente.ipynb
-│   ├── 002_Landing_Extracao.ipynb
-│   ├── 003_Bronze_Ingestao.ipynb
-│   ├── 004_Silver_Data_Quality.ipynb
-│   ├── 005_Gold_Modelagem_Dimensional.ipynb
-│   └── 006_Destruindo_Ambiente.ipynb
+├── notebooks/               # Notebooks Databricks (.ipynb)
+│   ├── 01_extract_supabase_to_landing.ipynb
+│   ├── 02_landing_to_bronze.ipynb
+│   ├── 03_bronze_to_silver.ipynb
+│   ├── 04_silver_to_gold.ipynb
+│   └── 05_reset.ipynb
 ├── docs/                    # Documentação (MkDocs)
 ├── site/                    # Site gerado pelo MkDocs (gh-pages)
 ├── mkdocs.yml               # Configuração do MkDocs

@@ -1,57 +1,51 @@
 # Camada Silver
 
-> Notebook: `004_Silver_Data_Quality.ipynb`
+> Notebook: `03_bronze_to_silver.ipynb`
 
 A **Silver** lê os dados do Bronze, aplica **regras de Data Quality** e padronização, e grava em
-formato **Delta Lake** no schema `silver`. É a camada usada por engenheiros de dados e de ML/IA
-para consultas *ad hoc*.
+formato **Delta Lake** no schema `silver`.
 
 ## Regras de Data Quality aplicadas
 
 | Regra | Descrição |
 |-------|-----------|
-| Deduplicação | Remove registros com chave primária duplicada (`dropDuplicates`) |
+| Tipagem | Converte os campos para os tipos corretos (`cast` para int, double, date, string) |
+| Strings | `trim` + normalização (`initcap` para nomes/cidade, `lower` para email/status) |
+| Deduplicação | Remove registros com chave primária duplicada (`dropDuplicates(["id"])`) |
 | Nulos | Filtra registros com campos obrigatórios nulos |
-| Tipos | Garante tipos corretos (data, decimal, inteiro) |
-| Strings | `trim` e normalização de capitalização (`initcap` / `lower`) |
-| Validação | Remove valores inválidos (preço ≤ 0, quantidade ≤ 0, etc.) |
-| Renomeação | Colunas em `snake_case` sem abreviações (ex.: `id` → `id_cliente`) |
-| Metadados | Atualiza `data_processamento` e descarta `nome_arquivo` do bronze |
+| Validação | Remove valores inválidos (`preco > 0`, `quantidade > 0`, `valor_total > 0`) |
+| Normalização | `estoque` negativo é ajustado para `0` |
+| Metadados | Adiciona `_silver_processed_at` |
 
 ## Exemplos por tabela
 
 ### Clientes
-- Dedup por `id`; remove nulos em `id`, `nome`, `email`
-- `nome` → `initcap(trim(...))`, `email` → `lower(trim(...))`
-- `cidade` nula vira `"Nao Informado"`
-- Renomeia para `id_cliente`, `nome_cliente`, `email_cliente`, `cidade_cliente`
-
-### Produtos
-- Remove produtos com `preco` nulo ou ≤ 0
-- `estoque` nulo/negativo é normalizado para `0`
-- `preco` arredondado para 2 casas
-- Renomeia para `id_produto`, `nome_produto`, `categoria_produto`, `preco_produto`, `estoque_produto`
-
-### Pedidos
-- Remove pedidos com `valor_total` ou `quantidade` inválidos (nulos ou ≤ 0)
-- `status` normalizado; valores fora do domínio viram `"desconhecido"`
-  (domínio: `entregue`, `em_transito`, `processando`, `finalizado`, `cancelado`)
-- `data_pedido` convertida para `date`
-- Renomeia para `id_pedido`, `id_cliente`, `id_produto`, `quantidade_pedido`,
-  `valor_total_pedido`, `status_pedido`
-
 ```python
-df_clientes_silver = (
-    df_clientes_bronze
-    .dropDuplicates(["id"])
-    .filter(F.col("id").isNotNull())
-    .withColumn("nome",  F.initcap(F.trim(F.col("nome"))))
-    .withColumn("email", F.lower(F.trim(F.col("email"))))
-    .withColumnRenamed("id", "id_cliente")
-    .withColumn("data_processamento", F.current_timestamp())
-    .drop("nome_arquivo")
+clientes = (
+    spark.table(f"{BRONZE_SCHEMA}.clientes")
+        .select(
+            col("id").cast("string").alias("id"),
+            trim(initcap(col("nome"))).alias("nome"),
+            trim(lower(col("email"))).alias("email"),
+            trim(initcap(col("cidade"))).alias("cidade")
+        )
+        .dropDuplicates(["id"])
+        .filter("id IS NOT NULL")
+        .filter("nome IS NOT NULL")
+        .filter("email IS NOT NULL")
+        .withColumn("_silver_processed_at", current_timestamp())
 )
 ```
+
+### Produtos
+- `preco` convertido para `double` e filtrado (`preco > 0`)
+- `estoque` convertido para `int`; valores negativos viram `0`
+- `nome` e `categoria` padronizados com `trim` + `initcap`
+
+### Pedidos
+- `quantidade` (int) e `valor_total` (double) validados (`> 0`)
+- `data_pedido` convertida para `date`
+- `status` normalizado com `lower` + `trim`
 
 ## Resultado
 

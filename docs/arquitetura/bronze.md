@@ -1,43 +1,38 @@
 # Camada Bronze
 
-> Notebook: `003_Bronze_Ingestao.ipynb`
+> Notebook: `02_landing_to_bronze.ipynb`
 
-A **Bronze** é a cópia da camada Landing, agora em **Delta Lake**. Mantém o **histórico completo dos
-dados brutos** (ainda não processados), com suporte a ACID e *time travel*.
+A **Bronze** é a cópia das tabelas da camada Landing, agora em **Delta Lake** (ACID, metadados,
+time travel). Mantém os dados brutos, sem transformação de valores.
 
 ## O que a camada faz
 
-- Lê os arquivos **CSV** da Landing Zone (`/Volumes/<catalog>/landing/dados/{tabela}`)
-- Adiciona **metadados de auditoria**
-- Grava como **tabela Delta gerenciada** no schema `bronze`
+- Lê as tabelas do schema `landing` (`workspace.landing.{tabela}`)
+- Grava cada uma como **tabela Delta gerenciada** no schema `bronze`
 
 ```python
-df_bronze = (
-    df_landing
-    .withColumn("nome_arquivo",       F.input_file_name())
-    .withColumn("data_processamento", F.current_timestamp())
-)
+for table in TABLES:
+    df = spark.table(f"{LANDING_SCHEMA}.{table}")
 
-(df_bronze.write
-   .format("delta")
-   .mode("overwrite")
-   .saveAsTable(f"bronze.{tabela}"))
+    (
+        df.write
+            .format("delta")
+            .mode("overwrite")
+            .saveAsTable(f"{BRONZE_SCHEMA}.{table}")
+    )
 ```
 
 ## Características
 
 - **Formato Delta** (ACID, metadados, time travel)
-- **Dados imutáveis** (apenas leitura) — cópia fiel da landing, sem transformação de valores
-- **Metadados adicionados**: `nome_arquivo` (origem) e `data_processamento` (carimbo de tempo)
-- Mantém o histórico completo dos dados brutos
+- Cópia fiel da landing, sem transformação de valores
+- Já carrega os metadados de auditoria adicionados na Landing (`_source_table`, `_extracted_at`)
 
 ## Validações do notebook
 
-O notebook também demonstra recursos do Delta Lake:
-
-- `DESCRIBE DETAIL bronze.{tabela}` — formato, nº de arquivos, tamanho
-- `DESCRIBE HISTORY bronze.{tabela}` — histórico de versões (**time travel**)
-- `SHOW TABLES IN bronze` + contagem de registros por tabela
+- `SHOW TABLES IN workspace.bronze`
+- `spark.table("workspace.bronze.clientes").show()`
+- `DESCRIBE DETAIL workspace.bronze.clientes`
 
 ## Resultado
 

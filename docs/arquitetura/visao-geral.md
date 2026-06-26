@@ -5,7 +5,7 @@ organizar logicamente os dados de um **Data Lakehouse**. O objetivo é **melhora
 progressiva** a estrutura e a qualidade dos dados à medida que eles fluem pelas camadas.
 
 Neste trabalho, o pipeline tem **quatro camadas** (Landing → Bronze → Silver → Gold), todas executadas
-no **Databricks Free Edition** e encadeadas por um **Job (Jobs & Pipelines)**.
+no **Databricks Free Edition** (serverless) e encadeadas por um **Job (Jobs & Pipelines)**.
 
 ## Fluxo do pipeline
 
@@ -13,44 +13,40 @@ no **Databricks Free Edition** e encadeadas por um **Job (Jobs & Pipelines)**.
 Supabase (PostgreSQL)
         │  JDBC
         ▼
-   LANDING / DADOS      CSV brutos (formato original da origem)
+   LANDING              CSV brutos (formato original da origem)
         │
         ▼
-     BRONZE             Delta Lake + metadados de auditoria
+     BRONZE             cópia em Delta Lake
         │
         ▼
      SILVER             Delta Lake + Data Quality
         │
         ▼
-      GOLD              Delta Lake + Star Schema (Ralph Kimball)
+      GOLD              Delta Lake + Star Schema
 ```
 
 ## Resumo das camadas
 
 | Camada | Formato | Conteúdo | Notebook |
 |--------|---------|----------|----------|
-| **Landing** | CSV | Cópia bruta da origem, camada provisória de ingestão | `002_Landing_Extracao.ipynb` |
-| **Bronze** | Delta Lake | Histórico completo dos dados brutos + metadados | `003_Bronze_Ingestao.ipynb` |
-| **Silver** | Delta Lake | Dados limpos, padronizados e validados (Data Quality) | `004_Silver_Data_Quality.ipynb` |
-| **Gold** | Delta Lake | Modelo dimensional (Kimball) otimizado para consumo/BI | `005_Gold_Modelagem_Dimensional.ipynb` |
+| **Landing** | CSV | Cópia bruta da origem (Volume), camada provisória de ingestão | `01_extract_supabase_to_landing.ipynb` |
+| **Bronze** | Delta Lake | Cópia das tabelas da Landing em Delta | `02_landing_to_bronze.ipynb` |
+| **Silver** | Delta Lake | Dados limpos, padronizados e validados (Data Quality) | `03_bronze_to_silver.ipynb` |
+| **Gold** | Delta Lake | Modelo dimensional (star schema) para consumo/BI | `04_silver_to_gold.ipynb` |
+
+> O notebook `05_reset.ipynb` não faz parte do fluxo — serve para **limpar o ambiente** (remover
+> tabelas e zerar o Volume) quando for preciso recomeçar.
 
 ## Característica de cada camada
 
-- **Landing** — camada provisória da primeira ingestão. Formato original da origem (CSV/JSON). Usada
-  apenas por engenheiros de dados, normalmente como backup para recriar conjuntos de dados.
-- **Bronze** — cópia da landing, mas em **Delta Lake** (ACID, metadados). Mantém o histórico completo,
-  dados imutáveis (apenas leitura), normalmente particionados por data.
-- **Silver** — formato Delta. Aplica **regras de qualidade e padronização** (nomenclatura, maiúsculo
-  x minúsculo, remoção de abreviações), remove duplicados, trata nulos e valores inválidos.
-- **Gold** — formato Delta. Dados transformados segundo as **regras de negócio**, em modelo otimizado
-  para leitura (dimensional / star schema). Altamente governado e documentado.
+- **Landing** — camada provisória da primeira ingestão. Formato original da origem (CSV). Aqui também
+  são criados os schemas (`landing`, `bronze`, `silver`, `gold`) e o **Volume** da Landing Zone.
+- **Bronze** — cópia da landing em **Delta Lake** (ACID, metadados). Mantém o histórico dos dados brutos.
+- **Silver** — formato Delta. Aplica **regras de qualidade e padronização** (trim, maiúsculo/minúsculo,
+  tipagem), remove duplicados e registros inválidos.
+- **Gold** — formato Delta. Dados em **modelo dimensional (star schema)**, otimizado para leitura e BI.
 
-## Setup do ambiente (notebook 001)
+## Onde o ambiente é preparado
 
-O notebook `001_Preparando_Ambiente.ipynb` prepara todo o ambiente antes da execução:
-
-- Remove o ambiente anterior (execução limpa)
-- Cria os schemas `landing`, `bronze`, `silver` e `gold`
-- Cria a Landing Zone como **Volume** do Unity Catalog (`/Volumes/<catalog>/landing/dados`)
-
-Veja os detalhes de cada etapa nas páginas seguintes.
+A criação dos schemas e do Volume acontece **no início do notebook `01_extract_supabase_to_landing.ipynb`**
+(via `%sql`), antes da extração — por isso o pipeline tem 5 notebooks (sem um notebook separado só de setup).

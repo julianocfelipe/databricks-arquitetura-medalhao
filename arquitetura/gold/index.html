@@ -640,10 +640,9 @@
 <p>Notebook: <code>04_silver_to_gold.ipynb</code></p>
 </blockquote>
 <p>Constrói o <strong>Star Schema</strong> a partir do Silver, em Delta Lake.</p>
-<div class="highlight"><pre><span></span><code>    dim_cliente
-         │
-    fato_pedido ─── dim_produto
-</code></pre></div>
+<pre class="mermaid"><code>flowchart LR
+    dim_cliente --&gt; fato_pedido
+    dim_produto --&gt; fato_pedido</code></pre>
 <table>
 <thead>
 <tr>

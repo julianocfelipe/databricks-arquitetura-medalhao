@@ -9,11 +9,6 @@
 # MAGIC Extrai todas as tabelas do banco **LojaVirtualDB** no Supabase
 # MAGIC e grava como arquivos **CSV** na Landing Zone.
 # MAGIC
-# MAGIC ### Ambiente: Databricks Free Edition (Serverless)
-# MAGIC O Free Edition é **serverless** — não há cluster clássico nem aba *Libraries* para
-# MAGIC instalar driver Maven. Por isso a extração usa **psycopg2** (driver Python),
-# MAGIC instalado direto no notebook com `%pip`, em vez de Spark JDBC.
-# MAGIC
 # MAGIC ### Modelo de dados extraído
 # MAGIC ```
 # MAGIC clientes (id, nome, email, cidade)
@@ -40,12 +35,6 @@ dbutils.library.restartPython()
 # MAGIC ## 2. Configuração da Conexão com Supabase
 
 # COMMAND ----------
-
-# ⚠️ Dados do SEU projeto Supabase — Session Pooler (IPv4)
-# Acesse: supabase.com → seu projeto → Connect → seção "Session pooler"
-#
-# Usa o Session Pooler (IPv4) em vez da conexão direta (db.xxxx.supabase.co, IPv6),
-# pois o Databricks Free Edition serverless não alcança o host direto (timeout).
 SUPABASE_HOST     = "aws-1-us-west-2.pooler.supabase.com"
 SUPABASE_PORT     = "5432"
 SUPABASE_DB       = "postgres"

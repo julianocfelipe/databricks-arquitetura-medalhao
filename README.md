@@ -55,11 +55,12 @@ dim_tempo ─── fato_pedidos ─── dim_produtos
 
 | Notebook | Etapa | Descrição |
 |----------|-------|-----------|
-| `001_Preparando_Ambiente.py` | Setup | Cria schemas e diretórios |
-| `002_Landing_Extracao.py` | Landing | Extrai do Supabase → CSV no DBFS |
+| `001_Preparando_Ambiente.py` | Setup | Cria schemas e o Volume da Landing Zone |
+| `002_Landing_Extracao.py` | Landing | Extrai do Supabase → CSV no Volume |
 | `003_Bronze_Ingestao.py` | Bronze | CSV → Delta Lake com metadados |
 | `004_Silver_Data_Quality.py` | Silver | Data Quality + padronização |
 | `005_Gold_Modelagem_Dimensional.py` | Gold | Star Schema (Ralph Kimball) |
+| `006_Destruindo_Ambiente.py` | Reset | Remove todos os schemas (CASCADE) |
 
 ## Tecnologias
 
